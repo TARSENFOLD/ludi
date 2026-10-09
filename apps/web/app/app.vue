@@ -5,7 +5,7 @@ import { DootLogo, SiteFooter, ThemeProvider } from '@doot-games/ui'
 const theme = useState('doot-theme', () => 'doot')
 const route = useRoute()
 const chrome = computed(
-  () => !route.path.startsWith('/host/') && !route.path.startsWith('/play/') && !route.path.startsWith('/watch/'),
+  () => !route.path.startsWith('/host/') && !route.path.startsWith('/play/') && !route.path.startsWith('/watch/') && !route.path.startsWith('/duo'),
 )
 
 // The account control (avatar + dropdown, or Log in / Sign up) lives in

@@ -28,12 +28,13 @@ import { standingsThrough } from './standings'
 // `sessionMode`: this game is one leg of a session (a "night of games"), so the
 // results page hides its own "play again / pick another" controls — the session
 // shell drives "next game" and shows the running session standings instead.
-const props = defineProps<{ plugin: GamePlugin; sessionMode?: boolean }>()
+const props = defineProps<{ plugin: GamePlugin; sessionMode?: boolean; controllerOnly?: boolean }>()
 
 // A game may ship a custom results view (e.g. a chain game's "unspool"); fall back
 // to the generic board otherwise. Mirrors how the shell honors components.Host.
 const ResultsView = computed(() => props.plugin.components?.Results ?? GameResults)
 const room = injectDootRoom()
+const ludiDuo = inject<boolean>('ludiDuo', false)
 
 // Optional host round-count picker (provided by HostRoom for pooled flagships).
 interface RoundConfig {
@@ -95,7 +96,10 @@ function autoBalance() {
   const names = teams.value
   if (!names.length) return
   // Round-robin across the teams in roster order, so the split is even.
-  room.players.value.forEach((p, i) => room.host.assignTeam(p.id, names[i % names.length]!))
+  room.players.value.forEach((p, i) => {
+    const team = names[i % names.length]
+    if (team) room.host.assignTeam(p.id, team)
+  })
 }
 
 // P4B (lobby control): "let the crowd's votes count" on scored judge rounds. Shown
@@ -247,7 +251,8 @@ const answer = computed(() =>
 
 const joinUrl = computed(() => {
   const code = room.code.value
-  return typeof window === 'undefined' ? `/play/${code}` : `${window.location.origin}/play/${code}`
+  const path = `/play/${code}${ludiDuo ? '?ludi=1' : ''}`
+  return typeof window === 'undefined' ? path : `${window.location.origin}${path}`
 })
 const roundTimer = computed(() =>
   block.value?.timerOf && content.value ? block.value.timerOf(content.value) : null,
@@ -370,6 +375,7 @@ function finish() {
   if (!s) return
   room.host.finish(scoreGame(props.plugin, s.effectiveCfg, s.ctx) as unknown as RelayValue)
 }
+defineExpose({ finish })
 
 // Publish the running standings after a round is revealed, so phones + the big
 // screen can show a between-round leaderboard. Only for a scored game (a leaderboard
@@ -478,7 +484,7 @@ function startVote() {
 // Transitions update local state synchronously, so display blocks can still chain
 // through the unused open/lock/reveal beat to the next round.
 watch(
-  [index, state, isDisplay, hasTimer],
+  [() => room.phase.value, index, state, isDisplay, hasTimer],
   () => {
     if (state.value !== 'ready' || !room.host.can('open')) return
     if (isDisplay.value || !hasTimer.value) room.host.openVoting()
@@ -632,6 +638,7 @@ watch(
 </style>
 
 <template>
+  <template v-if="!controllerOnly">
   <!-- LOBBY -->
   <div v-if="room.phase.value === 'lobby'" class="lobby" @pointerdown="armSfx">
     <section class="panel ticket-card">
@@ -945,6 +952,7 @@ watch(
   </div>
 
   <div v-else class="stage"><p>This game has no rounds yet.</p></div>
+  </template>
 </template>
 
 <style scoped>

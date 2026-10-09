@@ -8,6 +8,7 @@ const props = withDefaults(
   defineProps<{
     initialCode?: string
     initialName?: string
+    ludi?: boolean
     /**
      * Optional pre-join check supplied by the app (which owns the relay). Reports
      * whether this name is already live in the room (identity is derived from room
@@ -17,7 +18,7 @@ const props = withDefaults(
      */
     probe?: (code: string, name: string) => Promise<{ present: boolean; full?: boolean }>
   }>(),
-  { initialCode: '', initialName: '', probe: undefined },
+  { initialCode: '', initialName: '', probe: undefined, ludi: false },
 )
 const emit = defineEmits<{
   join: [payload: { code: string; name: string }]
@@ -49,11 +50,11 @@ function validate(): { code: string; name: string } | null {
   const c = code.value.trim().toUpperCase()
   const n = name.value.trim()
   if (!isValidRoomCode(c)) {
-    error.value = 'Enter the 4-character room code.'
+    error.value = props.ludi ? 'Introduz o código de 4 caracteres.' : 'Enter the 4-character room code.'
     return null
   }
   if (!n) {
-    error.value = 'Pick a name so others know who you are.'
+    error.value = props.ludi ? 'Escolhe um nome para entrares na sala.' : 'Pick a name so others know who you are.'
     return null
   }
   error.value = ''
@@ -97,7 +98,7 @@ async function submit() {
 function watchOnly() {
   const c = code.value.trim().toUpperCase()
   if (!isValidRoomCode(c)) {
-    error.value = 'Enter the 4-character room code.'
+    error.value = props.ludi ? 'Introduz o código de 4 caracteres.' : 'Enter the 4-character room code.'
     return
   }
   error.value = ''
@@ -133,7 +134,7 @@ function onNameInput() {
 <template>
   <form class="join-form" @submit.prevent="submit">
     <label class="fld">
-      <span>Room code</span>
+      <span>{{ ludi ? 'Código da sala' : 'Room code' }}</span>
       <input
         ref="codeInput"
         v-model="code"
@@ -143,42 +144,42 @@ function onNameInput() {
         autocorrect="off"
         spellcheck="false"
         autocomplete="off"
-        aria-label="Room code"
+        :aria-label="ludi ? 'Código da sala' : 'Room code'"
         placeholder="ABCD"
         @input="code = code.toUpperCase()"
       />
     </label>
     <label class="fld">
-      <span>Your name</span>
+      <span>{{ ludi ? 'O teu nome' : 'Your name' }}</span>
       <input
         ref="nameInput"
         v-model="name"
         class="input"
         maxlength="24"
         autocomplete="off"
-        aria-label="Your display name"
-        placeholder="e.g. Robin"
+        :aria-label="ludi ? 'O teu nome' : 'Your display name'"
+        :placeholder="ludi ? 'O teu nome' : 'e.g. Robin'"
         @input="onNameInput"
         @keyup.enter="submit"
       />
     </label>
     <template v-if="!nameTaken && !roomFull">
       <DButton variant="primary" type="submit" block :disabled="checking">
-        {{ checking ? 'Checking…' : 'Join game' }}
+        {{ checking ? (ludi ? 'A verificar…' : 'Checking…') : (ludi ? 'Entrar na sala' : 'Join game') }}
       </DButton>
-      <button type="button" class="link-btn watch-link" @click="watchOnly">Just watch instead</button>
+      <button v-if="!ludi" type="button" class="link-btn watch-link" @click="watchOnly">Just watch instead</button>
     </template>
     <div v-if="roomFull" class="taken" role="alert">
-      <p class="taken-msg">This room is full for players. You can still watch along.</p>
-      <DButton variant="primary" type="button" block @click="watchOnly">Watch instead</DButton>
+      <p class="taken-msg">{{ ludi ? 'Esta sala já está cheia.' : 'This room is full for players. You can still watch along.' }}</p>
+      <DButton v-if="!ludi" variant="primary" type="button" block @click="watchOnly">Watch instead</DButton>
       <button type="button" class="link-btn" :disabled="checking" @click="tryAgain">
-        {{ checking ? 'Checking…' : 'Try to join again' }}
+        {{ checking ? (ludi ? 'A verificar…' : 'Checking…') : (ludi ? 'Tentar novamente' : 'Try to join again') }}
       </button>
     </div>
     <div v-if="nameTaken" class="taken" role="alert">
-      <p class="taken-msg">That name is already in this room. Reconnect if it's you, or pick another.</p>
-      <DButton variant="primary" type="button" block @click="reconnect">It's me, reconnect</DButton>
-      <button type="button" class="link-btn" @click="pickAnother">Pick a different name</button>
+      <p class="taken-msg">{{ ludi ? 'Este nome já está na sala. Reconecta se fores tu ou escolhe outro.' : "That name is already in this room. Reconnect if it's you, or pick another." }}</p>
+      <DButton variant="primary" type="button" block @click="reconnect">{{ ludi ? 'Sou eu, reconectar' : "It's me, reconnect" }}</DButton>
+      <button type="button" class="link-btn" @click="pickAnother">{{ ludi ? 'Escolher outro nome' : 'Pick a different name' }}</button>
     </div>
     <p v-if="error" class="err" role="alert">{{ error }}</p>
   </form>

@@ -4,7 +4,7 @@
  * were right, instead of only pointing at the big screen (the second-screen
  * promise: a player who can't see the host still gets the game).
  */
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import type { GuessContent, GuessInput } from './block'
 
 const props = defineProps<{
@@ -12,6 +12,7 @@ const props = defineProps<{
   myInput?: GuessInput | null
   reveal?: { correctIndex: number; correctLabel: string; revealImage?: string } | null
 }>()
+const ludiDuo = inject<boolean>('ludiDuo', false)
 
 const answered = computed(() => props.myInput?.choice != null)
 const correct = computed(
@@ -35,20 +36,20 @@ const answerImage = computed(() => {
   <div class="guess-reveal big" aria-live="polite">
     <template v-if="correct">
       <div class="badge ok" aria-hidden="true">&#10003;</div>
-      <h2>Correct!</h2>
-      <p>Nice one. Check the big screen for the standings.</p>
+      <h2>{{ ludiDuo ? 'Acertaste!' : 'Correct!' }}</h2>
+      <p>{{ ludiDuo ? 'Boa! A pontuação aparece aqui em baixo.' : 'Nice one. Check the big screen for the standings.' }}</p>
     </template>
     <template v-else-if="answered">
       <div class="badge no" aria-hidden="true">&#10007;</div>
-      <h2>Not quite</h2>
+      <h2>{{ ludiDuo ? 'Quase!' : 'Not quite' }}</h2>
       <img v-if="answerImage" class="answer-img" :src="answerImage" alt="" />
-      <p>The answer was <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
+      <p>{{ ludiDuo ? 'A resposta era' : 'The answer was' }} <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
     </template>
     <template v-else>
       <div class="badge no" aria-hidden="true">&#8211;</div>
-      <h2>Time!</h2>
+      <h2>{{ ludiDuo ? 'Tempo esgotado!' : 'Time!' }}</h2>
       <img v-if="answerImage" class="answer-img" :src="answerImage" alt="" />
-      <p>The answer was <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
+      <p>{{ ludiDuo ? 'A resposta era' : 'The answer was' }} <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
     </template>
   </div>
 </template>

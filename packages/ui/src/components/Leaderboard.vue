@@ -14,6 +14,7 @@ const props = withDefaults(
     entries: Entry[]
     /** The viewing player: their id (preferred) or their name. Their row is marked. */
     highlight?: string | null
+    youLabel?: string
     max?: number
     /** Lay the board out in this many columns. The host big screen is WIDE and
      *  height-bound, so two columns fit twice the board in the same height; a phone
@@ -28,7 +29,7 @@ const props = withDefaults(
      *  wrong answer to the only question they came to the results page with. */
     pinHighlighted?: boolean
   }>(),
-  { highlight: null, max: 8, columns: 1, showRest: false, pinHighlighted: false },
+  { highlight: null, youLabel: 'You', max: 8, columns: 1, showRest: false, pinHighlighted: false },
 )
 
 // Hiding exactly one player behind a "+ 1 more" line is worse than just showing them,
@@ -95,7 +96,7 @@ const isMe = (e: Entry) => !!props.highlight && (e.id === props.highlight || e.n
             {{ e.name }}
             <!-- Colour alone must never carry meaning, so the viewer's own row is
                  labelled as well as tinted. -->
-            <span v-if="isMe(e)" class="you">You</span>
+            <span v-if="isMe(e)" class="you">{{ youLabel }}</span>
           </span>
           <span v-if="e.detail" class="dt">{{ e.detail }}</span>
         </span>
@@ -110,7 +111,7 @@ const isMe = (e: Entry) => !!props.highlight && (e.id === props.highlight || e.n
         <span class="rank">{{ pinnedRow.rank }}</span>
         <Avatar :name="pinnedRow.name" :id="pinnedRow.id ?? pinnedRow.name" :size="32" class="av" />
         <span class="who">
-          <span class="nm">{{ pinnedRow.name }}<span class="you">You</span></span>
+          <span class="nm">{{ pinnedRow.name }}<span class="you">{{ youLabel }}</span></span>
           <span v-if="pinnedRow.detail" class="dt">{{ pinnedRow.detail }}</span>
         </span>
         <span class="sc mono">{{ pinnedRow.score }}</span>

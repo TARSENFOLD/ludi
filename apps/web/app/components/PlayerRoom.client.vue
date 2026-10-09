@@ -10,12 +10,13 @@ import { GamePlayer, getPlugin } from '@doot-games/games'
 import { Avatar, PhoneShell } from '@doot-games/ui'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 
-const props = defineProps<{ room: string; name: string }>()
+const props = defineProps<{ room: string; name: string; deviceFirst?: boolean }>()
 const runtime = useRuntimeConfig()
 
 const relay = createClaspRelay(runtime.public.relayUrl as string, { name: `doot-player:${props.name}` }, { assets: createEphemeralAssets(props.room) })
 const room = useDootRoom({ relay, room: props.room, role: 'player', name: props.name, nameFilter: playerNameFilter })
 provideDootRoom(room)
+provide('ludiDuo', !!props.deviceFirst)
 
 // Adopt the host's per-game theme once meta arrives; the app's global
 // ThemeProvider (driven by this state) then restyles the play surface.
@@ -66,7 +67,7 @@ onScopeDispose(() => {
         Reconnecting… your answers are safe.
       </div>
       <div v-else-if="hostGone" class="banner recon">
-        The host's screen went away. Waiting for them to come back…
+        {{ deviceFirst ? 'A pessoa que criou a sala saiu. Aguardamos que volte…' : "The host's screen went away. Waiting for them to come back…" }}
       </div>
       <div v-else-if="room.error.value" class="banner err">{{ room.error.value }}</div>
     </template>
@@ -78,11 +79,11 @@ onScopeDispose(() => {
     </template>
     <component :is="PlayerView" v-if="plugin" :plugin="plugin" />
     <div v-else-if="notFound" class="loading deadroom">
-      <h2>Can't find room {{ code }}</h2>
-      <p>Double-check the code with the host, or the room may have ended.</p>
-      <NuxtLink to="/" class="btn btn-primary">Back to start</NuxtLink>
+      <h2>{{ deviceFirst ? 'Não encontramos a sala' : "Can't find room" }} {{ code }}</h2>
+      <p>{{ deviceFirst ? 'Confirma o código com a outra pessoa. A sala pode ter terminado.' : 'Double-check the code with the host, or the room may have ended.' }}</p>
+      <NuxtLink :to="deviceFirst ? '/duo' : '/'" class="btn btn-primary">{{ deviceFirst ? 'Voltar ao Ludi' : 'Back to start' }}</NuxtLink>
     </div>
-    <div v-else class="loading">Joining room {{ code }}…</div>
+    <div v-else class="loading">{{ deviceFirst ? 'A entrar na sala' : 'Joining room' }} {{ code }}…</div>
   </PhoneShell>
 </template>
 

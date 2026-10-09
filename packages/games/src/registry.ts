@@ -12,6 +12,7 @@ import { categories } from './games/categories'
 import { circuitCypher } from './games/circuit-cypher'
 import { custom } from './games/custom'
 import { doodleChain } from './games/doodle-chain'
+import { entreNos } from './games/entre-nos'
 import { draw } from './games/draw'
 import { faker } from './games/faker'
 import { fibFinder } from './games/fib-finder'
@@ -43,6 +44,7 @@ import { wavelength } from './games/wavelength'
 import { whatYouDidntKnow } from './games/what-you-didnt-know'
 
 export const builtinPlugins: GamePlugin[] = [
+  entreNos,
   guess,
   rate,
   poll,

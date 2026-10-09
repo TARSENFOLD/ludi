@@ -4,7 +4,7 @@
  * where the room landed, so a player who can't see the big screen still gets the
  * payoff. A poll has no right answer, so this is "you vs the crowd", not scoring.
  */
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import type { PollContent, PollInput, PollRevealSummary } from './block'
 
 const props = defineProps<{
@@ -12,31 +12,41 @@ const props = defineProps<{
   myInput?: PollInput | null
   reveal?: PollRevealSummary | null
 }>()
+const ludiDuo = inject<boolean>('ludiDuo', false)
 
 const myChoice = computed(() => props.myInput?.choice ?? null)
 const myLabel = computed(() =>
   myChoice.value != null ? (props.content.options[myChoice.value]?.label ?? '') : '',
 )
 const topLabel = computed(() => props.reveal?.topLabel ?? '')
+const splitVote = computed(() => {
+  const counts = props.reveal?.counts ?? []
+  const top = Math.max(0, ...counts)
+  return top > 0 && counts.filter((count) => count === top).length > 1
+})
 const withCrowd = computed(
-  () => myChoice.value != null && props.reveal?.topIndex === myChoice.value && !!topLabel.value,
+  () => myChoice.value != null && !splitVote.value && props.reveal?.topIndex === myChoice.value && !!topLabel.value,
 )
 </script>
 
 <template>
   <div class="poll-reveal big" aria-live="polite">
     <template v-if="myChoice == null">
-      <h2>No vote</h2>
-      <p v-if="topLabel">The room went with <b>{{ topLabel }}</b>.</p>
-      <p v-else>No votes this round.</p>
+      <h2>{{ ludiDuo ? 'Sem resposta' : 'No vote' }}</h2>
+      <p v-if="topLabel">{{ ludiDuo ? 'A sala escolheu' : 'The room went with' }} <b>{{ topLabel }}</b>.</p>
+      <p v-else>{{ ludiDuo ? 'Ninguém respondeu nesta ronda.' : 'No votes this round.' }}</p>
+    </template>
+    <template v-else-if="splitVote">
+      <h2>{{ ludiDuo ? 'Escolhas divididas' : 'Split vote' }}</h2>
+      <p>{{ ludiDuo ? 'Escolheste' : 'You picked' }} <b>{{ myLabel }}</b>. {{ ludiDuo ? 'A sala ficou dividida.' : 'The room was evenly split.' }}</p>
     </template>
     <template v-else-if="withCrowd">
-      <h2>With the crowd</h2>
-      <p>You and the room both went <b>{{ myLabel }}</b>.</p>
+      <h2>{{ ludiDuo ? 'Em sintonia!' : 'With the crowd' }}</h2>
+      <p>{{ ludiDuo ? 'Vocês escolheram' : 'You and the room both went' }} <b>{{ myLabel }}</b>.</p>
     </template>
     <template v-else>
-      <h2>You picked {{ myLabel }}</h2>
-      <p v-if="topLabel">The room leaned <b>{{ topLabel }}</b>.</p>
+      <h2>{{ ludiDuo ? 'Escolheste' : 'You picked' }} {{ myLabel }}</h2>
+      <p v-if="topLabel">{{ ludiDuo ? 'A sala preferiu' : 'The room leaned' }} <b>{{ topLabel }}</b>.</p>
     </template>
   </div>
 </template>

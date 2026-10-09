@@ -19,6 +19,8 @@ env:
 
 jobs:
   check:
+    # This deployment belongs to the original Doot repository.
+    if: github.repository == 'virgilvox/doot-games'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4

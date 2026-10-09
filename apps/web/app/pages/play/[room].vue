@@ -4,6 +4,8 @@ import { DootLogo, JoinForm } from '@doot-games/ui'
 import { ref } from 'vue'
 
 const route = useRoute()
+const ludi = computed(() => route.query.ludi === '1')
+useHead({ title: ludi.value ? 'Ludi — entrar na sala' : 'Doot, put a game on the big screen' })
 const runtime = useRuntimeConfig()
 const roomCode = computed(() => String(route.params.room).toUpperCase())
 const name = ref('')
@@ -94,12 +96,13 @@ async function probeName(
   <main class="play">
     <ClientOnly>
       <AudienceRoom v-if="watching" :room="roomCode" />
-      <PlayerRoom v-else-if="joined" :room="roomCode" :name="name" />
+      <PlayerRoom v-else-if="joined" :room="roomCode" :name="name" :device-first="ludi" />
       <div v-else class="gate">
         <div class="panel card">
-          <DootLogo :size="48" />
-          <p class="lead">Joining room <b class="mono">{{ roomCode }}</b></p>
-          <JoinForm :initial-code="roomCode" :initial-name="savedName" :probe="probeName" @join="onJoin" @watch="onWatch" />
+          <NuxtLink v-if="ludi" to="/duo" class="ludi-brand">Ludi</NuxtLink>
+          <DootLogo v-else :size="48" />
+          <p class="lead">{{ ludi ? 'Entrar na sala' : 'Joining room' }} <b class="mono">{{ roomCode }}</b></p>
+          <JoinForm :initial-code="roomCode" :initial-name="savedName" :probe="probeName" :ludi="ludi" @join="onJoin" @watch="onWatch" />
         </div>
       </div>
       <template #fallback><div class="gate">Loading…</div></template>
@@ -124,4 +127,5 @@ async function probeName(
   color: var(--ink-soft);
   margin: 14px 0 18px;
 }
+.ludi-brand { display: inline-block; color: #244d35; font-size: 32px; font-weight: 900; text-decoration: none; }
 </style>

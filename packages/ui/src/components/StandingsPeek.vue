@@ -34,12 +34,13 @@ const props = withDefaults(
     teams?: string[]
     max?: number
     title?: string
+    youLabel?: string
     /** Cap on the panel height (CSS length). Phones keep the compact 30vh; the host
      *  big screen passes a taller value so a few full-size rows aren't clipped + made
      *  to scroll (a TV can't scroll). It still caps for very large rooms. */
     maxHeight?: string
   }>(),
-  { me: null, teams: () => [], max: 5, title: 'Standings so far', maxHeight: '30vh' },
+  { me: null, teams: () => [], max: 5, title: 'Standings so far', youLabel: 'You', maxHeight: '30vh' },
 )
 
 const teamRows = computed(() => props.results.teamLeaderboard ?? [])
@@ -67,6 +68,7 @@ function teamTint(team: string, rank: number): string {
       :entries="results.leaderboard ?? []"
       :highlight="me"
       :max="max"
+      :you-label="youLabel"
     />
   </div>
 </template>
