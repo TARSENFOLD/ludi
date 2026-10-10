@@ -12,7 +12,7 @@ corepack pnpm --filter @doot-games/web dev
 
 Abre `http://localhost:3000/duo`, escreve o teu nome e cria a sala. Envia o convite a outra pessoa. O criador joga no próprio dispositivo e controla o avanço das rondas na mesma página. O jogo **Entre Nós** tem quatro rondas, compostas com os blocks existentes `poll` e `guess`.
 
-O fluxo usa o relay público CLASP configurado pelo Doot. Para testar com dois telemóveis na mesma rede, o servidor tem de ouvir na interface de rede (`corepack pnpm --filter @doot-games/web dev --host 0.0.0.0`) e o criador deve abrir o endereço LAN da máquina, não `localhost`. O convite herda a origem aberta pelo criador. O endereço LAN atual pode ser visto com `ip -4 -o addr show dev wlo1`. Este cenário em dois aparelhos físicos ainda precisa de ser executado.
+O fluxo usa o relay público CLASP configurado pelo Doot. Para testar com dois telemóveis na mesma rede, o servidor tem de ouvir na interface de rede (`corepack pnpm --filter @doot-games/web dev --host 0.0.0.0`) e o criador deve abrir o endereço LAN da máquina, não `localhost`. O convite herda a origem aberta pelo criador. O endereço LAN atual pode ser visto com `ip -4 -o addr show dev wlo1`. O firewall deve permitir a porta 3000 na interface da rede usada para o teste.
 
 ### Roteiro para dois telemóveis
 
@@ -32,10 +32,24 @@ O fluxo usa o relay público CLASP configurado pelo Doot. Para testar com dois t
 - O teste de integração percorre as quatro rondas com três runtimes separados (host, jogador criador e convidado), incluindo ocultação da resposta correta antes da revelação e scoring.
 - `nuxi typecheck` passou. O fluxo foi observado no browser até ao resultado final em ambas as sessões.
 
+## Teste acompanhado pelo utilizador — 10 out 2026
+
+Versão testada: `38bc2d9`. O utilizador executou a partida no dispositivo criador e com um iPhone como convidado, pela rede local.
+
+- As capturas enviadas mostram duas pessoas na sala do criador, a pergunta, respostas fechadas, revelação de escolhas divididas e a partida concluída com resultados.
+- O utilizador confirmou que no iPhone conseguiu responder e ver os resultados corretamente.
+- Depois do roteiro de recarga do criador e do convidado, o utilizador confirmou: “testado e a reconexao funciona perfeitamente”. A reconexão fica registada como confirmação do utilizador; não foi observada diretamente pelo agente nos aparelhos.
+- O acesso inicial do iPhone foi desbloqueado permitindo temporariamente TCP/3000 na zona `nm-shared` do firewall do hotspot. O servidor já estava a responder antes dessa alteração.
+- Resultado: fluxo funcional de **Entre Nós** e reconexão confirmados nos dois lados da sessão, incluindo o iPhone convidado.
+
+### Ajustes de interface identificados
+
+As capturas do criador mostram o convite a ocupar espaço durante a partida e o controlo de avanço abaixo da área visível no ecrã em paisagem. Estes ajustes continuam pendentes; não impediram a conclusão reportada da partida.
+
 ## Limites
 
-- O teste browser usou duas abas na mesma máquina; ainda não prova a experiência em dois telemóveis físicos nem em condições de rede móvel.
-- A página inicial, o convite e a primeira pergunta foram inspecionados numa moldura de browser com 390 px de largura. A ergonomia em hardware real, incluindo teclado, toque e rede, continua por confirmar.
+- Os testes anteriores em duas abas foram complementados pelo teste do utilizador com iPhone convidado. O modelo e o ambiente exato do dispositivo criador, as versões dos browsers e do iOS não foram registados.
+- A confirmação cobre a sessão reportada na rede local; redes independentes, interrupções prolongadas, suspensão em segundo plano e diferentes tamanhos de ecrã continuam fora desta evidência.
 - A compatibilidade observada é para jogos compostos com `poll` e `guess`. Os jogos com fluxo próprio foram avaliados apenas por leitura do código em [CUSTOM_FLOW_AUDIT.md](CUSTOM_FLOW_AUDIT.md); nenhum foi validado em dois aparelhos.
 - Isto é um spike local jogável, não uma versão publicada ou uma validação de produção.
 

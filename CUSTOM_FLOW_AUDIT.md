@@ -26,4 +26,4 @@ Leitura estática do código em 2026-10-08. Esta tabela avalia **adaptação ao 
 
 ## Próxima prova útil
 
-Quando houver dois aparelhos: executar o roteiro em `LUDI_SPIKE.md` para **Entre Nós**. Se passar, adaptar **Bingo** como segunda prova técnica: o jogo obriga a demonstrar como o criador joga e controla no mesmo telemóvel, como todos veem a chamada atual e como a sala retoma depois de uma recarga. Essa implementação deve ser decidida depois de confirmar que Bingo faz sentido para o catálogo, sem transformar esta auditoria numa decisão de plataforma.
+Em 10 out 2026, o utilizador confirmou o fluxo completo e a reconexão de **Entre Nós**, com um iPhone como convidado na rede local; ver `LUDI_SPIKE.md`. Os ajustes de interface identificados no criador devem ser resolvidos. **Bingo** continua candidato a segunda prova técnica: o jogo obriga a demonstrar como o criador joga e controla no mesmo telemóvel, como todos veem a chamada atual e como a sala retoma depois de uma recarga. Essa implementação deve ser decidida depois de confirmar que Bingo faz sentido para o catálogo, sem transformar esta auditoria numa decisão de plataforma.

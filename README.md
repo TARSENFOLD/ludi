@@ -21,9 +21,9 @@ Para dois dispositivos na mesma rede, inicia com `corepack pnpm --filter @doot-g
 ## Estado do protótipo
 
 - Criação, entrada, quatro rondas e resultados foram observados em duas sessões browser na mesma máquina.
-- A recarga do criador e a reconexão do convidado foram verificadas nesse cenário.
+- Em 10 out 2026, o utilizador confirmou a partida completa e a reconexão do criador e do convidado, com um iPhone como convidado na rede local. As capturas mostram o fluxo até aos resultados no criador.
 - O teste de integração cobre runtimes separados, ocultação da resposta correta e pontuação.
-- Falta validar dois telemóveis físicos, incluindo toque, teclado e condições de rede.
+- Há ajustes de interface pendentes no criador: compactar o convite durante a partida e manter o avanço visível em paisagem. A evidência detalhada e os limites estão em [LUDI_SPIKE.md](LUDI_SPIKE.md).
 - Doot continua a ser uma base técnica em avaliação; os outros jogos do catálogo não estão automaticamente adaptados ao Ludi.
 
 ## Verificar
