@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      build_image:
+        description: Build a tested Docker image artifact for manual VPS release
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -28,3 +33,48 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm --filter @doot-games/web build
       - run: node scripts/verify-ludi.mjs
+
+  image:
+    if: github.event_name == 'workflow_dispatch' && inputs.build_image
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Build immutable release image
+        run: docker build -f docker/Dockerfile -t ludi:${{ github.sha }} .
+      - name: Smoke test public image
+        shell: bash
+        run: |
+          set -euo pipefail
+          secret=$(openssl rand -hex 32)
+          echo "::add-mask::$secret"
+          docker run -d --name ludi-check -p 127.0.0.1:3300:3000 \
+            -e SESSION_PASSWORD="$secret" -e LUDI_PUBLIC_ONLY=1 \
+            -e NUXT_PUBLIC_LUDI_PUBLIC_ONLY=true \
+            -e LUDI_PUBLIC_ORIGIN=http://127.0.0.1:3300 \
+            -e DOOT_BACKUP_DISABLED=1 -e DOOT_EPHEMERAL_LIFECYCLE_DISABLED=1 \
+            ludi:${{ github.sha }}
+          trap 'docker rm -f ludi-check >/dev/null' EXIT
+          ready=false
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:3300/api/health; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" = true
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3300/api/admin/users)" = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3300/ludi)" = 200
+          curl --fail --silent http://127.0.0.1:3300/api/ludi/rooms \
+            -H 'Origin: http://127.0.0.1:3300' -H 'Content-Type: application/json' \
+            --data '{"name":"Release check","id":"release-check-01"}' \
+            | python3 -c 'import json,sys; assert json.load(sys.stdin)["code"]'
+      - name: Export image
+        run: docker save ludi:${{ github.sha }} | gzip > ludi-image.tar.gz
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ludi-image-${{ github.sha }}
+          path: ludi-image.tar.gz
+          compression-level: 0
+          retention-days: 7
