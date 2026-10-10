@@ -30,9 +30,13 @@ O workflow Verify Ludi executa estas verificações no PR. O script HTTP não pu
 
 Observado no browser integrado: descoberta, combinação sala/3 pessoas sem resultados, limpar filtros, preparar solo, responder com teclado, pontuação após respostas, vista 390×844 e 844×390. Em paisagem, o controlo principal permanece fixo e as opções podem ser percorridas com scroll. Também observado: sala com identidades separadas por origens/cookies independentes, lobby 2/2 corrigido, convite compacto em jogo, recargas do criador e do convidado preservando identidade/ronda/resposta confirmada, e revelação sincronizada. Não equivale a um teste em Safari/iPhone físico.
 
-## Gate físico após migração — pendente
+## Gate físico após migração — confirmado pelo utilizador
 
-O teste anterior do spike foi confirmado pelo utilizador, incluindo iPhone e reconexão. A identidade e a autoridade mudaram; essa evidência **não aprova a migração v0.2**.
+Em 10 out 2026, após o roteiro e as capturas da sessão da v0.2, o utilizador confirmou: **“no iphone passou”**. Versão em teste: `3191fdc2e39351438eb5ffd82af8f35944b28fb8`. Esta confirmação encerra o gate físico do PR e é evidência reportada pelo utilizador; o agente não operou o iPhone.
+
+As três capturas da sala `D82A3F58` mostram duas pessoas, resposta confirmada, revelação da primeira ronda e progresso para a segunda. A confirmação do iPhone é global: não foram fornecidos modelo, versão do iOS/Safari nem um relatório separado de cada passo. Não se atribui às capturas prova de conclusão, recarga ou repetição. Esses percursos têm também a evidência automatizada e de browser descrita acima. A validação anterior do spike permanece um registo separado.
+
+### Roteiro de referência
 
 1. Na mesma rede do computador, abrir `http://<IP-LAN>:3000/duo` num aparelho e criar uma sala.
 2. Abrir o convite no outro aparelho, no Safari do iPhone. Entrar com nome diferente. Confirmar roster 2/2 e mensagem “Já estão os dois aqui”.
@@ -43,7 +47,7 @@ O teste anterior do spike foi confirmado pelo utilizador, incluindo iPhone e rec
 7. Opcional: desligar Wi-Fi e voltar a ligar durante uma ronda; verificar retoma sem ação duplicada. Abrir o mesmo nome num browser diferente deve ser recusado, sem assumir a identidade.
 8. Em `/ludi`, carregar Desafio rápido, preparar solo/mesmo aparelho e só depois desligar a rede: concluir as perguntas e repetir. Recarregar deve reiniciar o jogo.
 
-Registar: versão/commit, data, aparelhos, versões dos browsers/iOS e resultado dos passos. A etapa permanece com aceitação física pendente até confirmação explícita.
+Em futuras regressões, registar versão/commit, data, aparelhos, versões dos browsers/iOS e resultado de cada passo. O PR segue para revisão após esta confirmação; publicação é uma etapa posterior.
 
 ## Limitações intencionais
 

@@ -25,7 +25,7 @@ Para aparelhos na mesma rede, inicia com `corepack pnpm --filter @doot-games/web
 - Soluções e respostas privadas das salas ficam no servidor. HTTP e SSE usam a mesma visão filtrada, incluindo para o criador.
 - Salas efémeras: uma instância, memória, máximo de oito horas. Reiniciar o servidor termina-as. Não executar várias instâncias atrás de balanceamento nesta versão.
 - Partidas locais reiniciam ao recarregar. Cinco perguntas em português, sem temporizador.
-- Testes automatizados, typecheck, build e provas HTTP/SSE documentados. **O novo teste acompanhado no iPhone está pendente**; a validação física anterior refere-se ao spike.
+- Testes automatizados, typecheck, build e provas HTTP/SSE documentados. **O utilizador confirmou que o teste da v0.2 no iPhone passou em 10 out 2026**; evidência e limites constam no registo de validação.
 - Os restantes jogos Doot continuam disponíveis como legado. Não são automaticamente experiências Ludi adaptadas.
 
 ## Verificar

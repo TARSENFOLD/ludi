@@ -1,6 +1,6 @@
 # Ludi Game Contract v0.2
 
-Estado: contrato implementado nesta branch; aceitação física da migração ainda pendente.
+Estado: contrato implementado nesta branch; teste físico da migração no iPhone confirmado pelo utilizador em 10 out 2026. PR pronto para revisão.
 Data: 10 outubro 2026. Doot é a fundação confirmada. Os nomes `@doot-games/*` e o monorepo são preservados.
 
 ## Quatro checkpoints
