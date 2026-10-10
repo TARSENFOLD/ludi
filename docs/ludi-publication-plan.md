@@ -1,6 +1,6 @@
 # Publicação e operação do Ludi
 
-Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Imagem em execução: `ludi:6a6d1df10d8661434ed013b53bb599b199d42fd2`.
+Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Interface atual integrada no PR #4. Imagem em execução: `ludi:5696418032ac00a208338ce3e0a784ecc39dd9fe`.
 
 ## Infraestrutura existente verificada
 
@@ -51,6 +51,15 @@ Projeto Compose separado `ludi`, diretório `~/ludi` do utilizador de deploy (mo
 - Browser na origem pública: catálogo carregou e Desafio rápido solo foi concluído, cinco perguntas e cinco pontos. A validação local sem rede e o teste físico no iPhone da v0.2 estão registados na entrega anterior; não são apresentados como novos testes físicos da publicação.
 
 - Reinício controlado apenas do Ludi: contentor voltou a saudável e sala anterior passou a responder HTTP 410 (tratado pela interface como sala terminada). Os quatro contentores PDC mantiveram-se saudáveis; não foram reiniciados.
+
+## Publicação da direção visual — 10 out 2026
+
+- PR #4 integrada em `5696418032ac00a208338ce3e0a784ecc39dd9fe`, após autorização de publicação.
+- [Release CI](https://github.com/TARSENFOLD/ludi/actions/runs/38034219799): verificação completa e imagem aprovadas. Artefacto ZIP verificado no destino: SHA-256 `b49571d971a76dbd5d9fa1892410a6eaf22ef61484fe1969fc6d8ff993fb2839`.
+- Apenas o serviço Ludi foi recriado; ficou saudável. Imagem anterior conservada para recuperação. Serviços PDC mantiveram o uptime e healthchecks.
+- HTTPS e nova homepage editorial verificados no browser público. Preparação do quiz, início, primeira resposta e pontuação (+1) confirmados.
+- Prova HTTP/SSE contra a origem pública aprovada: quatro rondas, cookies Secure/HttpOnly, origem, identidade, retoma, filtragem, idempotência, entrada concorrente e limites.
+- A QA responsive documentada continua válida; esta publicação não constitui um novo teste físico no iPhone.
 
 ## Atualizar ou recuperar o serviço
 
