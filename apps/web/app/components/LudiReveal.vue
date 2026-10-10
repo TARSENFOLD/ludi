@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { LudiMode, PublicRound, RoundReveal } from '@doot-games/sdk/ludi'
-const props = defineProps<{ content: PublicRound; reveal: RoundReveal; ownChoice?: number; mode: LudiMode }>()
+import type { ChoiceRound, RoundReveal } from "@doot-games/games/ludi/contracts";
+import type { LudiMode } from "@doot-games/sdk/ludi";
+const props = defineProps<{ content: ChoiceRound; reveal: RoundReveal; ownChoice?: number; mode: LudiMode }>()
 const correct = computed(() => props.reveal.correctIndex !== undefined)
 const personal = computed(() => props.mode !== 'same-device')
 const right = computed(() => props.ownChoice === props.reveal.correctIndex)

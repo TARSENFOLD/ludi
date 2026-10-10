@@ -6,6 +6,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { once } from "node:events";
 
+const testOnda = process.argv.includes("--onda");
 const root = new URL("../", import.meta.url);
 const files = await readdir(new URL("apps/web/.output/public/_nuxt/", root), { recursive: true });
 let checked = 0;
@@ -16,13 +17,15 @@ for (const file of files.filter((f) => /\.(js|map)$/.test(f))) {
     "um quilo de algodão",
     "Temos cinco minutos livres.",
     "Se hoje tivesse uma banda sonora",
+    "Uma caminhada sem destino",
+    "Um robot que só conta piadas más",
   ]) {
     assert(!source.includes(secret), `Room content leaked into client asset ${file}`);
   }
   checked++;
 }
 assert(checked > 0);
-console.log(`Bundle privacy: ${checked} client assets contain no Entre Nós room content.`);
+console.log(`Bundle privacy: ${checked} client assets contain no Ludi room content.`);
 
 const socket = createServer().listen(0, "127.0.0.1");
 await once(socket, "listening");
@@ -42,6 +45,8 @@ const child = spawn(process.execPath, ["apps/web/.output/server/index.mjs"], {
     NITRO_PORT: String(port),
     LUDI_PUBLIC_ORIGIN: base,
     LUDI_PUBLIC_ONLY: "1",
+    LUDI_ONDA_PREVIEW: testOnda ? "1" : "0",
+    NUXT_PUBLIC_LUDI_ONDA_PREVIEW: testOnda ? "true" : "false",
     NUXT_PUBLIC_LUDI_PUBLIC_ONLY: "true",
   },
   stdio: ["ignore", "pipe", "pipe"],
@@ -139,6 +144,87 @@ try {
     }
   }
   console.log("Public profile: root entry, catalogue and legacy API isolation passed.");
+  if (testOnda) {
+    const probe = client();
+    for (const gameId of ['../spectrum'])
+      assert.equal((await probe.request('', { name: 'Teste', id: id(), gameId })).status, 400);
+    for (const count of [2, 3, 6]) {
+      const people = Array.from({ length: count }, client);
+      const createOnda = { name: 'Pessoa 0', id: id(), gameId: 'na-mesma-onda' };
+      const created = await people[0].request('', createOnda);
+      assert.equal(created.status, 200);
+      const room = created.body.code;
+      assert.equal((await people[0].request('', createOnda)).body.code, room);
+      assert.equal((await people[0].request('', { ...createOnda, gameId: 'entre-nos' })).status, 409);
+      for (let i = 1; i < count; i++) assert.equal((await people[i].request(`/${room}/join`, { name: `Pessoa ${i}` })).status, 200);
+      const roster = (await people[0].request(`/${room}`)).body.players;
+      const hostEvents = await people[0].stream(room), guestEvents = await people[1].stream(room);
+      streams.push(hostEvents, guestEvents);
+      let state = created.body;
+      const sendOnda = async (index, type, value, extras = {}) => {
+        const response = await people[index].request(`/${room}/actions`, {
+          id: id(), match: state.match, round: state.round, type,
+          ...(value === undefined ? {} : { value }), ...extras,
+        });
+        if (response.status === 200) state = response.body;
+        return response;
+      };
+      assert.equal((await sendOnda(1, 'start')).status, 409);
+      assert.equal((await sendOnda(0, 'start')).status, 200);
+      const topics = [];
+      for (let r = 0; r < 6; r++) {
+        topics.push(state.content.prompt);
+        if (r === 0) {
+          assert.equal((await sendOnda(0, 'answer', 100.5)).status, 400);
+          assert.equal((await sendOnda(0, 'answer', 50, { choice: 1 })).status, 400);
+          assert.equal((await sendOnda(0, 'answer', 50, { participantId: roster[1].id })).status, 400);
+        }
+        for (let i = 0; i < count; i++) {
+          assert.equal((await sendOnda(i, 'answer', i === 0 ? 20 : 80)).status, 200);
+          assert.equal(state.reveal, undefined);
+          assert.equal(state.scores, undefined);
+          assert.equal(state.history, undefined);
+          assert.equal(state.ownValue, i === 0 ? 20 : 80);
+        }
+        const resumed = (await people[0].request(`/${room}`)).body;
+        assert.equal(resumed.ownValue, 20);
+        assert.equal(resumed.context.participantId, roster[0].id);
+        assert.equal(resumed.roundState, 'locked');
+        assert.equal((await sendOnda(0, 'answer', 80)).status, 409);
+        assert.equal((await sendOnda(0, 'reveal')).status, 200);
+        assert.deepEqual(state.reveal.marks, [20, ...Array(count - 1).fill(80)]);
+        assert.equal((await sendOnda(0, r === 5 ? 'finish' : 'next')).status, 200);
+      }
+      assert.equal(state.phase, 'results');
+      assert.equal(state.history.length, 6);
+      if (count === 2) assert.deepEqual(state.scores.map(p => p.score), [2400, 2400]);
+      const replayOnda = { id: id(), match: state.match, round: state.round, type: 'replay' };
+      const repeated = await Promise.all([people[0].request(`/${room}/actions`, replayOnda), people[0].request(`/${room}/actions`, replayOnda)]);
+      for (const response of repeated) {
+        assert.equal(response.status, 200); assert.equal(response.body.match, 2);
+        assert.deepEqual(response.body.players, roster);
+        assert.equal(response.body.ownValue, undefined); assert.equal(response.body.scores, undefined);
+        assert(!topics.includes(response.body.content.prompt));
+      }
+      assert.equal(repeated[0].body.content.prompt, repeated[1].body.content.prompt);
+      for (let i = 0; i < 100 && guestEvents.events.at(-1)?.match !== 2; i++) await new Promise(resolve => setTimeout(resolve, 10));
+      for (const [stream, own] of [[hostEvents, 20], [guestEvents, 80]]) {
+        assert(stream.events.length >= 10);
+        for (const event of stream.events) {
+          assert(!JSON.stringify(event).match(/"inputs":|"token":|ludi_session/));
+          if (event.phase !== 'results' && event.roundState !== 'reveal') {
+            assert.equal(event.reveal, undefined); assert.equal(event.scores, undefined); assert.equal(event.history, undefined);
+          }
+          if (event.ownValue !== undefined) assert.equal(event.ownValue, own);
+        }
+      }
+    }
+    console.log('Na Mesma Onda HTTP/SSE: 2/3/6 independent sessions, six rounds, privacy, identity, reload, strict actions and idempotent replay passed.');
+  } else {
+    assert.equal((await fetch(`${base}/ludi/na-mesma-onda`)).status, 404);
+    assert(!catalogue.includes('Estão na mesma onda?'));
+    assert.equal((await client().request('', { name: 'Teste', id: id(), gameId: 'na-mesma-onda' })).status, 400);
+
   const creator = client();
   const guest = client();
   const stranger = client();
@@ -248,6 +334,7 @@ try {
   console.log(
     "Nitro HTTP/SSE: identity, cookies, origin, validation, four rounds, reconnect snapshots, atomic join, privacy, replay and body limit passed.",
   );
+  }
 } finally {
   for (const stream of streams) await stream.close();
   child.kill("SIGTERM");

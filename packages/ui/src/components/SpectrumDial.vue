@@ -10,6 +10,7 @@ import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
+    labels?: { place: string; unset: string; of: string; hint: string; results: string; consensus: string }
     modelValue?: number | null
     leftLabel: string
     rightLabel: string
@@ -19,7 +20,7 @@ const props = withDefaults(
     mean?: number | null
     mine?: number | null
   }>(),
-  { modelValue: null, disabled: false, readonly: false, marks: () => [], mean: null, mine: null },
+  { labels: () => ({ place: "Place between", unset: "not set, drag to place", of: "of", hint: "Drag to place your guess", results: "Results between", consensus: "consensus" }), modelValue: null, disabled: false, readonly: false, marks: () => [], mean: null, mine: null },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
 
@@ -46,14 +47,14 @@ function onInput(e: Event) {
         step="1"
         :value="pos"
         :disabled="disabled"
-        :aria-label="`Place between ${leftLabel} and ${rightLabel}`"
-        :aria-valuetext="modelValue == null ? 'not set, drag to place' : `${pos} of 100`"
+        :aria-label="`${labels.place} ${leftLabel} / ${rightLabel}`"
+        :aria-valuetext="modelValue == null ? labels.unset : `${pos} ${labels.of} 100`"
         @input="onInput"
       />
-      <p v-if="modelValue == null" class="dial-hint">Drag to place your guess</p>
+      <p v-if="modelValue == null" class="dial-hint">{{ labels.hint }}</p>
     </template>
 
-    <div v-else class="track" role="img" :aria-label="`Results between ${leftLabel} and ${rightLabel}`">
+    <div v-else class="track" role="img" :aria-label="`${labels.results} ${leftLabel} / ${rightLabel}`">
       <span
         v-for="(m, i) in marks"
         :key="i"
@@ -63,7 +64,7 @@ function onInput(e: Event) {
       />
       <span v-if="mine != null" class="mark mine" :style="{ left: `${clamp(mine)}%` }" aria-hidden="true" />
       <span v-if="mean != null" class="mean" :style="{ left: `${clamp(mean)}%` }" aria-hidden="true">
-        <span class="mean-flag">consensus</span>
+        <span class="mean-flag" :style="{ transform: mean < 10 ? 'none' : mean > 90 ? 'translateX(-100%)' : 'translateX(-50%)' }">{{ labels.consensus }}</span>
       </span>
     </div>
   </div>

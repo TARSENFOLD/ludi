@@ -35,5 +35,9 @@ export function presentLudiGame(game: LudiManifest): LudiCatalogEntry {
         },
       },
     };
+  if (game.id === "na-mesma-onda") return {
+    game, level: "standard", tone: "paper", tagline: "Onde se encontram as vossas ideias?",
+    links: { room: { href: "/ludi/na-mesma-onda", label: "Criar sala" } },
+  };
   return { game, level: "standard", tone: "paper", tagline: "Uma nova forma de jogar.", links: {} };
 }

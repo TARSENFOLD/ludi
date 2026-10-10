@@ -29,10 +29,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run packages/games/src/ludi packages/games/src/runtime packages/games/src/catalog.test.ts packages/engine/src/state-machine.test.ts apps/web/server/utils/ludi-rooms.test.ts apps/web/server/utils/ludi-client-ip.test.ts apps/web/app/utils/ludi-session.test.ts
+      - run: pnpm exec vitest run packages/games/src/ludi packages/games/src/runtime packages/games/src/catalog.test.ts packages/engine/src/state-machine.test.ts apps/web/server/utils/ludi-rooms.test.ts apps/web/server/utils/ludi-onda.test.ts packages/games/src/blocks/spectrum packages/games/src/blocks/ballpark apps/web/server/utils/ludi-client-ip.test.ts apps/web/app/utils/ludi-session.test.ts
       - run: pnpm typecheck
       - run: pnpm --filter @doot-games/web build
       - run: node scripts/verify-ludi.mjs
+      - run: node scripts/verify-ludi.mjs --onda
 
   image:
     if: github.event_name == 'workflow_dispatch' && inputs.build_image

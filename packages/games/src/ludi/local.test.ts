@@ -3,7 +3,7 @@ import { LocalRuntime } from "./local";
 import { discoverGames } from "./catalog";
 import { guessRules } from "../blocks/guess/rules";
 import { pollRules } from "../blocks/poll/rules";
-import type { LudiView, LudiAction } from "@doot-games/sdk/ludi";
+import type { LudiView, LudiAction } from "@doot-games/games/ludi/contracts";
 
 describe("local contract proof, without Vue or relay", () => {
   for (const count of [1, 2, 6])

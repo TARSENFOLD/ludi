@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Participant } from '@doot-games/sdk/ludi'
-const props = defineProps<{ code: string; players: Participant[]; me?: string; lobby: boolean }>()
+const props = defineProps<{ code: string; players: Participant[]; me?: string; lobby: boolean; maxPlayers?: number }>()
 const invite = ref('')
 const feedback = ref('')
 let resetTimer: ReturnType<typeof setTimeout> | undefined
@@ -19,7 +19,7 @@ async function copyInvite() {
 <template>
   <aside class="ludi-room-info" :class="{ 'is-lobby': lobby }">
     <details :open="lobby">
-      <summary><span>Sala <strong>{{ code }}</strong></span><span class="ludi-room-count">{{ players.length }}/2 pessoas <span aria-hidden="true">⌄</span></span></summary>
+      <summary><span>Sala <strong>{{ code }}</strong></span><span class="ludi-room-count">{{ players.length }}/{{ maxPlayers ?? 2 }} pessoas <span aria-hidden="true">⌄</span></span></summary>
       <div class="ludi-room-content">
         <LudiRoster :players="players" :me="me" :waiting="players.length < 2" />
         <div class="ludi-invite">
@@ -28,7 +28,7 @@ async function copyInvite() {
           <p class="ludi-copy-feedback" role="status">{{ feedback }}</p>
           <label class="sr-only" :for="`invite-${code}`">Endereço do convite</label>
           <input :id="`invite-${code}`" :value="invite" readonly @focus="($event.target as HTMLInputElement).select()">
-          <p class="ludi-small">Envia à outra pessoa. Cada um joga no seu aparelho.</p>
+          <p class="ludi-small">Envia a quem vai jogar. Cada um joga no seu aparelho.</p>
         </div>
         <p class="ludi-small ludi-room-retention">Podes voltar a este link no mesmo browser. A sala dura até oito horas ou até o servidor reiniciar.</p>
       </div>

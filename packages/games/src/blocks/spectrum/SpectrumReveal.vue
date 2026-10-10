@@ -4,7 +4,7 @@
  *  with the same consensus curve the host scored with). */
 import { SpectrumDial } from '@doot-games/ui'
 import { computed } from 'vue'
-import { ballparkCloseness } from '../ballpark/block'
+import { ballparkCloseness } from '../scoring/closeness'
 import { BASE_POINTS } from '../scoring'
 import { SCALE_HALF, type SpectrumContent, type SpectrumInput } from './logic'
 

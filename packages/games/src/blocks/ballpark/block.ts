@@ -67,10 +67,8 @@ export interface BallparkRevealSummary {
 
 /** Closeness in [0,1]: 1 when this is the closest (smallest error), 0 for the
  *  worst guess in the round. `maxError <= 0` means everyone nailed it -> full. */
-export function ballparkCloseness(error: number, maxError: number): number {
-  if (maxError <= 0) return 1
-  return Math.max(0, (maxError - error) / maxError)
-}
+export { ballparkCloseness } from '../scoring/closeness'
+import { ballparkCloseness } from '../scoring/closeness'
 
 /** Answered guesses for a round (value present), paired with their error. */
 function errorsOf(

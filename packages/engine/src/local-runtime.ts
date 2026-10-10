@@ -6,7 +6,7 @@ import type { RoomState } from "./types";
 export interface RoundAuthority {
   state(): RoomState;
   inputsFor(round: number): Map<string, unknown>;
-  submit(round: number, participant: string, input: { choice: number }): void;
+  submit(round: number, participant: string, input: unknown): void;
   start(): void;
   open(): void;
   lock(): void;
@@ -26,9 +26,9 @@ export class LocalRoundAuthority implements RoundAuthority {
   inputsFor(round: number) {
     return new Map(this.inputs.get(round));
   }
-  submit(round: number, participant: string, input: { choice: number }) {
+  submit(round: number, participant: string, input: unknown) {
     if (!this.inputs.has(round)) this.inputs.set(round, new Map());
-    this.inputs.get(round)?.set(participant, { ...input });
+    this.inputs.get(round)?.set(participant, structuredClone(input));
   }
   start() {
     this.current = reduce(this.current, { type: "start" });

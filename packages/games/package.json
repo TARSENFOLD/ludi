@@ -12,7 +12,8 @@
     "./ludi": "./src/ludi/catalog.ts",
     "./ludi/local": "./src/ludi/local.ts",
     "./ludi/server": "./src/ludi/server.ts",
-    "./ludi/controller": "./src/ludi/controller.ts"
+    "./ludi/controller": "./src/ludi/controller.ts",
+    "./ludi/contracts": "./src/ludi/contracts.ts"
   },
   "scripts": {
     "build": "vue-tsc -p tsconfig.json",

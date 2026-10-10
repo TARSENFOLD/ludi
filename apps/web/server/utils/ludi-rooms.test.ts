@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { LudiRoomService, ROOM_TTL, IDLE_ROOM_TTL } from "./ludi-rooms";
-import type { LudiAction, LudiView } from "@doot-games/sdk/ludi";
+import type { LudiAction, LudiView } from "@doot-games/games/ludi/contracts";
 
 const services: LudiRoomService[] = [];
 function service(now = () => 1000) {

@@ -7,13 +7,14 @@ import { presentLudiGame } from '../../utils/ludi-presentation'
 useHead({ title: 'Ludi · Encontra o próximo momento', htmlAttrs: { lang: 'pt-PT' } })
 useHead({ link: [{ key: 'ludi-editorial-font', rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Fraunces:ital,wght,SOFT,WONK@0,700,30,1;1,700,30,1&display=swap' }] })
 const mode = ref<LudiMode | ''>('')
-const publicLudi = useRuntimeConfig().public.ludiPublicOnly
+const config = useRuntimeConfig()
+const publicLudi = config.public.ludiPublicOnly
 const players = ref(0)
 const minutes = ref(0)
 const vibe = ref<LudiVibe | ''>('')
 const extraFilters = computed(() => [players.value, minutes.value, vibe.value].filter(Boolean).length)
 const filtered = computed(() => !!mode.value || extraFilters.value > 0)
-const games = computed(() => discoverGames({ mode: mode.value || undefined, players: Number(players.value) || undefined, minutes: Number(minutes.value) || undefined, vibe: vibe.value || undefined }))
+const games = computed(() => discoverGames({ mode: mode.value || undefined, players: Number(players.value) || undefined, minutes: Number(minutes.value) || undefined, vibe: vibe.value || undefined }, config.public.ludiOndaPreview))
 const modes: { value: LudiMode | ''; label: string }[] = [
   { value: '', label: 'Todos' }, { value: 'solo', label: 'A solo' },
   { value: 'same-device', label: 'À mesa' }, { value: 'room', label: 'Online' },

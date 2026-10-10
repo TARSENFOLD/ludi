@@ -7,9 +7,10 @@ import {
   type RelayValue,
 } from "@doot-games/engine/server";
 import type { RoundAuthority } from "@doot-games/engine/local";
-import type { LudiView, RuleEnvironment } from "@doot-games/sdk/ludi";
-import { MatchController, LudiError } from "@doot-games/games/ludi/controller";
-import { entreNosDefinition } from "@doot-games/games/ludi/server";
+import type { LudiView } from "@doot-games/games/ludi/contracts";
+import type { RuleEnvironment } from "@doot-games/sdk/ludi";
+import { MatchController, LudiError, type GameDefinition } from "@doot-games/games/ludi/controller";
+import { createRoomDefinition } from "@doot-games/games/ludi/server";
 
 export const ROOM_TTL = 8 * 60 * 60 * 1000;
 export const IDLE_ROOM_TTL = 30 * 60 * 1000;
@@ -21,6 +22,7 @@ const EXPIRED = "A sala terminou ou o servidor foi reiniciado. Cria uma nova sal
 async function createAuthority(
   code: string,
   environment: RuleEnvironment,
+  definition: GameDefinition,
 ): Promise<RoundAuthority> {
   const relay = new MemoryRelay();
   const runtime = new RoomRuntime({
@@ -31,10 +33,10 @@ async function createAuthority(
     hostToken: randomUUID(),
   });
   const game: LoadedGame = {
-    meta: { pluginId: "entre-nos", pluginVersion: "0.2.0", title: "Entre Nós", themeId: "doot" },
-    config: { title: "Entre Nós" },
-    publishConfig: { title: "Entre Nós" },
-    rounds: entreNosDefinition.rounds.map(() => ({ timer: null })),
+    meta: { pluginId: definition.manifest.id, pluginVersion: "0.2.0", title: definition.manifest.name, themeId: "doot" },
+    config: { title: definition.manifest.name },
+    publishConfig: { title: definition.manifest.name },
+    rounds: definition.rounds.map(() => ({ timer: null })),
   };
   runtime.loadGame(game);
   try {
@@ -50,7 +52,7 @@ async function createAuthority(
       return { phase, round };
     },
     inputsFor: (i) => runtime.inputsFor(i),
-    submit: (i, id, input) => relay.set(addr.input(code, i, id), input),
+    submit: (i, id, input) => relay.set(addr.input(code, i, id), input as RelayValue),
     start: () => runtime.start(),
     open: () => runtime.openVoting(),
     lock: () => runtime.lock(),
@@ -77,24 +79,24 @@ interface RoomEntry {
 export class LudiRoomService {
   private rooms = new Map<string, RoomEntry>();
   private pending = new Map<string, { token: string; ip: string }>();
-  private creations = new Map<string, { name: unknown; result: Promise<string>; code?: string }>();
+  private creations = new Map<string, { gameId: string; name: unknown; result: Promise<string>; code?: string }>();
   private sweepTimer: ReturnType<typeof setInterval>;
-  constructor(private environment: RuleEnvironment = { now: Date.now, random: Math.random }) {
+  constructor(private environment: RuleEnvironment = { now: Date.now, random: Math.random }, private allowPreview = false) {
     this.sweepTimer = setInterval(() => this.sweep(), 60_000);
     this.sweepTimer.unref?.();
   }
-  async create(token: string, name: unknown, requestId: string = randomUUID(), ip = "internal") {
+  async create(token: string, name: unknown, requestId: string = randomUUID(), ip = "internal", gameId = "entre-nos") {
     this.sweep();
     const key = `${token}:${requestId}`;
     const previous = this.creations.get(key);
     if (previous) {
-      if (previous.name !== name)
+      if (previous.name !== name || previous.gameId !== gameId)
         throw new LudiError(409, "Identificador já usado noutra criação.");
       return this.view(await previous.result, token);
     }
-    const entry: { name: unknown; result: Promise<string>; code?: string } = {
-      name,
-      result: this.allocate(token, name, ip),
+    const entry: { gameId: string; name: unknown; result: Promise<string>; code?: string } = {
+      name, gameId,
+      result: this.allocate(token, name, ip, gameId),
     };
     this.creations.set(key, entry);
     try {
@@ -105,7 +107,7 @@ export class LudiRoomService {
       throw error;
     }
   }
-  private async allocate(token: string, name: unknown, ip: string) {
+  private async allocate(token: string, name: unknown, ip: string, gameId: string) {
     if (this.rooms.size + this.pending.size >= 250)
       throw new LudiError(503, "As salas estão ocupadas. Tenta novamente mais tarde.");
     if (
@@ -127,11 +129,12 @@ export class LudiRoomService {
     this.pending.set(code, { token, ip });
     let controller: MatchController | undefined;
     try {
+      const definition = createRoomDefinition(gameId, this.environment, this.allowPreview);
       const id = randomUUID();
       controller = new MatchController(
-        entreNosDefinition,
+        definition,
         "room",
-        await createAuthority(code, this.environment),
+        await createAuthority(code, this.environment, definition),
         id,
         this.environment,
       );
@@ -241,4 +244,4 @@ export class LudiRoomService {
     for (const code of this.rooms.keys()) this.expire(code);
   }
 }
-export const ludiRooms = new LudiRoomService();
+export const ludiRooms = new LudiRoomService(undefined, process.env.LUDI_ONDA_PREVIEW === "1");

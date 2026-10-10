@@ -43,6 +43,15 @@ export const ludiCatalog: LudiManifest[] = [
     access: { tier: "free", guestAccess: "included" },
     contentBundle: { id: "desafio-rapido-pt", version: "1", delivery: "local" },
   },
+  {
+    id: "na-mesma-onda", name: "Na Mesma Onda", version: "0.2.0",
+    description: "Seis temas, uma escala. Descubram a sintonia do grupo.",
+    modes: [{ mode: "room", execution: "remote", players: { min: 2, max: 6 }, duration: { min: 4, typical: 6, max: 12 } }],
+    vibes: ["conversation", "funny", "chill", "thinking"],
+    capabilities: ["score", "hidden-input", "reconnect"],
+    access: { tier: "free", guestAccess: "included" },
+    contentBundle: { id: "na-mesma-onda-pt", version: "1", delivery: "server" },
+  },
 ];
 export interface DiscoveryFilter {
   mode?: LudiMode;
@@ -56,8 +65,9 @@ export function getLudiManifest(id: string): LudiManifest {
   return game;
 }
 /** Match all constraints against the SAME implemented mode. Duration is an estimate. */
-export function discoverGames(filter: DiscoveryFilter) {
+export function discoverGames(filter: DiscoveryFilter, includePreview = false) {
   return ludiCatalog.flatMap((game) => {
+    if (game.id === "na-mesma-onda" && !includePreview) return [];
     if (filter.vibe && !game.vibes.includes(filter.vibe)) return [];
     const modes = game.modes.filter(
       (spec) =>
