@@ -61,6 +61,7 @@ jobs:
               ready=true
               break
             fi
+            echo "Waiting for image health ($attempt/40)"
             sleep 2
           done
           test "$ready" = true
