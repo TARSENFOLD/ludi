@@ -6,8 +6,6 @@ const view = shallowRef<LudiView>()
 const choice = ref<number | null>(null)
 const busy = ref(false)
 const error = ref('')
-const copied = ref(false)
-const invite = ref('')
 let unsubscribe: (() => void) | undefined
 watch(() => props.session, (session) => {
   unsubscribe?.()
@@ -15,7 +13,6 @@ watch(() => props.session, (session) => {
     const old = view.value
     if (!old || next.match !== old.match || next.round !== old.round || next.context.participantId !== old.context.participantId) choice.value = null
     view.value = next
-    if (next.code && import.meta.client) invite.value = `${location.origin}/ludi/salas/${next.code}`
   })
 }, { immediate: true })
 onUnmounted(() => { unsubscribe?.(); props.session.disconnect() })
@@ -32,21 +29,17 @@ async function act() {
   } catch (e) { error.value = e instanceof Error ? e.message : 'Não foi possível continuar.' }
   finally { busy.value = false }
 }
-async function copyInvite() {
-  try { await navigator.clipboard.writeText(invite.value); copied.value = true }
-  catch { error.value = 'Seleciona e copia o endereço do convite abaixo.' }
-}
 </script>
 
 <template>
   <main v-if="view" class="ludi-page ludi-game">
-    <header class="ludi-top"><NuxtLink to="/ludi">Ludi</NuxtLink><span>{{ view.title }} <template v-if="me">· {{ me.name }}</template></span></header>
+    <LudiHeader :context="me ? `${view.title} · ${me.name}` : view.title" />
     <p v-if="connection?.message" role="status" class="ludi-notice">{{ connection.message }} <NuxtLink v-if="connection.state === 'ended'" to="/duo">Criar sala</NuxtLink></p>
     <div class="ludi-game-layout" :class="{ 'is-lobby': view.phase === 'lobby' && view.code }">
-      <section class="ludi-card ludi-question" aria-live="polite" aria-atomic="true">
+      <section class="ludi-question" aria-live="polite" aria-atomic="true">
         <template v-if="view.phase === 'lobby'">
-          <p class="ludi-eyebrow">{{ view.title }}</p>
-          <h1>{{ view.context.mode === 'room' ? 'Uma sala para vocês.' : 'Prontos para o desafio?' }}</h1>
+          <LudiGameMark :game="view.gameId" /><p class="ludi-eyebrow">{{ view.title }}</p>
+          <h1>{{ view.context.mode === 'room' ? (view.players.length === 2 ? 'A dupla está pronta.' : 'Falta a outra metade.') : 'Prontos para o desafio?' }}</h1>
           <p v-if="view.context.mode !== 'room'">Cinco perguntas. Um ponto por acerto, sem temporizador.</p>
           <p v-else-if="view.players.length < 2">Convida a outra pessoa para começar.</p>
           <p v-else>{{ view.context.permissions.control ? 'Já estão os dois aqui. Podes começar!' : 'Já estão os dois aqui. A pessoa que criou a sala pode começar.' }}</p>
@@ -96,14 +89,7 @@ async function copyInvite() {
           </section>
         </details>
       </section>
-      <aside v-if="view.code" class="ludi-card ludi-room-info">
-        <details :open="view.phase === 'lobby'"><summary>Sala <strong>{{ view.code }}</strong> · {{ view.players.length }}/2</summary>
-          <p class="ludi-eyebrow">Convite</p><input :value="invite" readonly aria-label="Endereço do convite" @focus="($event.target as HTMLInputElement).select()">
-          <button class="ludi-secondary" @click="copyInvite">{{ copied ? 'Copiado' : 'Copiar convite' }}</button>
-          <ul><li v-for="player in view.players" :key="player.id">{{ player.name }}</li></ul>
-          <p class="ludi-small">A sala dura até oito horas. Mantém este browser para retomar a tua participação.</p>
-        </details>
-      </aside>
+      <LudiRoomInfo v-if="view.code" :code="view.code" :players="view.players" :me="view.context.participantId" :lobby="view.phase === 'lobby'" />
     </div>
     <footer class="ludi-controls">
       <p v-if="error" role="alert">{{ error }}</p>

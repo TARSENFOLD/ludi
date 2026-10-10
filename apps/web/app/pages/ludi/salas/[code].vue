@@ -36,11 +36,24 @@ onBeforeUnmount(() => session.value?.disconnect())
 </script>
 <template>
   <LudiGame v-if="session" :session="session" :connection="connection" />
-  <main v-else class="ludi-page"><header class="ludi-top"><NuxtLink to="/ludi">Ludi</NuxtLink><span>Entre Nós</span></header>
-    <form class="ludi-card ludi-narrow" @submit.prevent="join"><p class="ludi-eyebrow">Sala {{ code }}</p><h1>{{ expired ? 'Esta sala terminou.' : 'Junta-te à conversa.' }}</h1>
-      <p v-if="busy" role="status">A ligar à sala…</p><p v-if="error" role="alert">{{ error }}</p>
-      <template v-if="!expired && !busy"><label for="name">Como te chamas?</label><input id="name" v-model="name" maxlength="32" autocomplete="nickname" required><button class="ludi-primary" :disabled="!name.trim()">Entrar na sala <span aria-hidden="true">→</span></button><button type="button" class="ludi-secondary" @click="resume">Tentar retomar neste browser</button><p class="ludi-small">Para recuperar a tua participação, usa o mesmo browser onde entraste. O nome é apenas a forma como apareces no jogo.</p></template>
-      <NuxtLink v-if="expired" class="ludi-secondary" to="/duo">Criar outra sala</NuxtLink>
+  <main v-else class="ludi-page">
+    <LudiHeader context="Entre Nós" />
+    <form class="ludi-narrow ludi-setup" :aria-busy="busy" @submit.prevent="join">
+      <div class="ludi-form-heading">
+        <LudiGameMark game="entre-nos" />
+        <p class="ludi-eyebrow">Sala {{ code }}</p>
+        <h1>{{ expired ? 'Esta sala terminou.' : busy ? 'Já te pomos na conversa.' : 'Falta só chegar.' }}</h1>
+        <p v-if="busy" class="ludi-lead" role="status">A ligar à sala…</p>
+        <p v-else-if="expired" class="ludi-lead">Uma nova sala, outra boa conversa.</p>
+        <p v-else class="ludi-lead">O convite está contigo. Entra para jogar a dois.</p>
+      </div>
+      <p v-if="error" class="ludi-error" role="alert">{{ error }}</p>
+      <template v-if="!expired && !busy">
+        <label for="name">Como te chamas?</label><input id="name" v-model="name" placeholder="O teu nome" maxlength="32" autocomplete="nickname" required>
+        <button class="ludi-primary" :disabled="!name.trim()">Entrar na sala <span aria-hidden="true">→</span></button>
+        <details class="ludi-form-details"><summary>Já estavas a jogar?</summary><p>Usa o mesmo browser onde entraste para recuperar a tua participação. O nome é apenas a forma como apareces no jogo.</p><button type="button" class="ludi-text-button" @click="resume">Tentar retomar neste browser</button></details>
+      </template>
+      <NuxtLink v-if="expired" class="ludi-primary" to="/duo">Criar outra sala <span aria-hidden="true">→</span></NuxtLink>
     </form>
   </main>
 </template>

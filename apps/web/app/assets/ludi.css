@@ -140,3 +140,36 @@ body[data-ludi]::after { content: none; }
 .ludi-empty-mark { display: block; font-size: 40px; margin-bottom: 16px; }
 @media (min-width: 760px) { .ludi-intro { display: grid; grid-template-columns: 1fr 1fr; column-gap: 48px; } .ludi-intro .ludi-eyebrow { grid-column: 1 / -1; } .ludi-intro h1 { margin: 0; } .ludi-intro .ludi-lead { align-self: end; padding-bottom: 4px; font-size: 20px; } }
 @media (max-width: 660px) { .ludi-top { margin-bottom: 32px; } .ludi-catalog { grid-template-columns: 1fr; } .ludi-game-tile { padding: 24px; } .ludi-filters { grid-template-columns: 1fr; gap: 0; } .ludi-filters select { margin-bottom: 16px; } .ludi-tile-top { margin-bottom: 20px; } }
+
+/* Entry and lobby are open compositions, not forms inside raised cards. */
+.ludi-setup { padding-block: 16px 32px; }
+.ludi-setup h1 { font-size: clamp(40px, 5vw, 56px); }
+.ludi-setup .ludi-primary { margin-top: 8px; }
+.ludi-names { margin: 0 0 20px; }
+.ludi-name-fields { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.ludi-room-info { border-top: 1px solid var(--l-line); border-bottom: 1px solid var(--l-line); }
+.ludi-room-info summary { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding-block: 16px; font-size: 14px; list-style: none; }
+.ludi-room-info summary::-webkit-details-marker { display: none; }
+.ludi-room-count { color: var(--l-muted); }
+.ludi-room-count > span { display: inline-block; margin-left: 12px; }
+.ludi-room-info details[open] .ludi-room-count > span { transform: rotate(180deg); }
+.ludi-room-content { padding-block: 8px 24px; }
+.ludi-invite { border-top: 1px solid var(--l-line); margin-top: 24px; padding-top: 24px; }
+.ludi-invite .ludi-secondary { width: 100%; border-color: var(--l-ink); }
+.ludi-copy-feedback { font-size: 14px; min-height: 21px; margin: 8px 0 !important; }
+.ludi-page .ludi-invite input { font-size: 14px; min-height: 44px; margin-bottom: 12px; background: transparent; }
+.ludi-room-retention { margin-bottom: 0 !important; }
+.ludi-game { --l-controls-height: 112px; padding-bottom: calc(var(--l-controls-height) + 24px); }
+.ludi-game-layout { display: grid; max-width: 760px; margin: auto; gap: 32px; }
+.ludi-game-layout.is-lobby { max-width: 960px; grid-template-columns: minmax(0, 1fr) minmax(280px, .8fr); align-items: start; gap: 64px; }
+.ludi-question { min-width: 0; }
+.ludi-question > .ludi-game-mark { margin-bottom: 24px; }
+.ludi-game-layout.is-lobby .ludi-question { padding-top: 16px; }
+.ludi-game-layout.is-lobby h1 { max-width: 12ch; font-size: clamp(36px, 5vw, 56px); }
+.ludi-notice { max-width: 760px; margin: 0 auto 24px !important; border-radius: 8px; padding: 12px 16px; background: var(--l-warning); font-size: 14px; }
+.ludi-notice a { text-decoration: underline; font-weight: 700; }
+.ludi-controls { position: fixed; z-index: 10; bottom: 0; left: 0; width: 100%; padding: 12px max(20px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); background: var(--l-paper); border-top: 1px solid var(--l-line); }
+.ludi-controls > * { max-width: 720px; margin-inline: auto; }
+.ludi-controls p { font-size: 14px; margin-bottom: 8px; }
+.ludi-controls p:last-child { margin-bottom: 0; }
+@media (max-width: 660px) { .ludi-game-layout.is-lobby { grid-template-columns: 1fr; gap: 32px; } .ludi-setup { padding-top: 0; } }

@@ -16,13 +16,27 @@ function start() {
 </script>
 <template>
   <LudiGame v-if="session" :session="session" />
-  <main v-else class="ludi-page"><header class="ludi-top"><NuxtLink to="/ludi">Ludi</NuxtLink><span>Desafio rápido</span></header>
-    <form class="ludi-card ludi-narrow" @submit.prevent="start"><p class="ludi-eyebrow">Cinco perguntas · sem temporizador</p><h1>Uma pergunta de cada vez.</h1>
+  <main v-else class="ludi-page">
+    <LudiHeader context="Desafio rápido" />
+    <form class="ludi-narrow ludi-setup" @submit.prevent="start">
+      <div class="ludi-form-heading">
+        <LudiGameMark game="desafio-rapido" />
+        <p class="ludi-eyebrow">Cinco perguntas · sem pressa</p>
+        <h1>Vamos a isso?</h1>
+        <p class="ludi-lead">Um ponto por acerto. Uma pergunta de cada vez.</p>
+      </div>
       <label for="mode">Como vamos jogar?</label><select id="mode" v-model="mode"><option value="solo">A solo</option><option value="same-device">No mesmo aparelho</option></select>
-      <template v-if="mode === 'same-device'"><label for="count">Quantas pessoas?</label><select id="count" v-model="count"><option v-for="n in [2,3,4,5,6]" :key="n" :value="n">{{ n }}</option></select><p>Passa o aparelho a cada pessoa. A solução só aparece depois de todos responderem.</p></template>
-      <div v-for="n in (mode === 'solo' ? 1 : Number(count))" :key="n"><label :for="`name-${n}`">{{ mode === 'solo' ? 'O teu nome (opcional)' : `Pessoa ${n}` }}</label><input :id="`name-${n}`" v-model="names[n-1]" :placeholder="`Pessoa ${n}`" maxlength="32" autocomplete="off"></div>
-      <p v-if="error" role="alert">{{ error }}</p><button class="ludi-primary">Preparar partida <span aria-hidden="true">→</span></button>
-      <p class="ludi-small">Depois de carregar, a partida funciona sem internet. Recarregar a página reinicia o jogo.</p>
+      <template v-if="mode === 'same-device'">
+        <label for="count">Quantas pessoas?</label><select id="count" v-model="count"><option v-for="n in [2,3,4,5,6]" :key="n" :value="n">{{ n }}</option></select>
+        <p class="ludi-small">O aparelho passa de mão em mão. A solução só aparece depois de todos responderem.</p>
+        <details class="ludi-form-details ludi-names"><summary>Dar nome aos jogadores <span class="ludi-small">(opcional)</span></summary>
+          <div class="ludi-name-fields"><div v-for="n in Number(count)" :key="n"><label :for="`name-${n}`">Pessoa {{ n }}</label><input :id="`name-${n}`" v-model="names[n-1]" :placeholder="`Pessoa ${n}`" maxlength="32" autocomplete="off"></div></div>
+        </details>
+      </template>
+      <div v-else><label for="name-1">O teu nome <span class="ludi-small">(opcional)</span></label><input id="name-1" v-model="names[0]" placeholder="Pessoa 1" maxlength="32" autocomplete="nickname"></div>
+      <p v-if="error" class="ludi-error" role="alert">{{ error }}</p>
+      <button class="ludi-primary">Preparar partida <span aria-hidden="true">→</span></button>
+      <p class="ludi-small ludi-form-note">Podes jogar sem internet depois de carregar. Recarregar a página começa tudo de novo.</p>
     </form>
   </main>
 </template>
