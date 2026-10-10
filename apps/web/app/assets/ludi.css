@@ -1,48 +1,99 @@
-.ludi-page { --ink: #20372d; --primary: #24533b; min-height: 100dvh; background: #f6f3ea; color: var(--ink); padding: 24px max(20px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); font-family: 'Figtree', system-ui, sans-serif; }
-.ludi-page * { box-sizing: border-box; }
-.ludi-page h1 { font-family: 'Baloo 2', system-ui, sans-serif; font-size: clamp(28px, 4vw, 44px); line-height: 1.14; margin: 12px 0 24px; }
-.ludi-page h2 { font-size: 22px; line-height: 1.3; margin: 12px 0; }
-.ludi-page p { line-height: 1.6; }
-.ludi-page a { color: #24533b; }
-.ludi-top { max-width: 980px; margin: 0 auto 30px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.ludi-top > a { font-size: 30px; font-weight: 900; text-decoration: none; }
-.ludi-top > span { font-size: 14px; }
-.ludi-card { border: 1px solid #d1d9ce; background: #fffefa; border-radius: 22px; padding: clamp(20px, 4vw, 34px); box-shadow: 0 12px 40px #20372d08; }
-.ludi-main { max-width: 980px; margin: auto; }
-.ludi-narrow { max-width: 560px; margin: auto; }
-.ludi-eyebrow { color: #a84a2d; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; }
-.ludi-primary, .ludi-secondary { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; border-radius: 12px; border: 0; padding: 15px 18px; font: inherit; font-weight: 800; cursor: pointer; min-height: 48px; }
-.ludi-page .ludi-primary { background: #24533b; color: white; width: 100%; }
-.ludi-secondary { background: #e8eee2; color: #24533b; margin: 12px 0; }
-.ludi-page button:disabled { opacity: .5; cursor: default; }
-.ludi-page :focus-visible { outline: 3px solid #c75430; outline-offset: 4px; }
-.ludi-page input:not([type=radio]), .ludi-page select { display: block; background: white; color: #20372d; border: 1px solid #8a9d8e; border-radius: 10px; padding: 12px; min-height: 48px; width: 100%; font: inherit; margin: 6px 0 16px; }
-.ludi-page label { font-weight: 700; }
-.ludi-filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 25px 0; }
-.ludi-catalog { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-.ludi-small { font-size: 13px; color: #506858; }
-.ludi-game { padding-bottom: calc(132px + env(safe-area-inset-bottom)); }
-.ludi-game-layout { display: grid; max-width: 780px; margin: auto; gap: 20px; }
-.ludi-game-layout.is-lobby { max-width: 980px; grid-template-columns: 1.3fr 1fr; }
-.ludi-room-info { padding: 16px 22px; }
-.ludi-room-info summary { cursor: pointer; }
-.ludi-room-info ul { display: flex; flex-wrap: wrap; gap: 14px; padding: 0; list-style: none; }
-.ludi-options { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; }
-.ludi-options label { display: flex; align-items: center; gap: 14px; border: 2px solid #d5dece; border-radius: 15px; padding: 16px; cursor: pointer; background: #f5f7ef; }
-.ludi-options label.selected { background: #e2eddb; border-color: #24533b; }
-.ludi-options input { width: 22px; height: 22px; accent-color: #24533b; flex-shrink: 0; }
-.ludi-reveal { background: #edf3e7; padding: 18px; border-radius: 16px; }
-.ludi-reveal p { display: flex; justify-content: space-between; gap: 16px; }
-.ludi-scores { list-style: none; padding: 0; margin: 24px 0 0; }
-.ludi-scores li { display: flex; justify-content: space-between; gap: 15px; padding: 15px 0; border-bottom: 1px solid #dbe2d5; }
-.ludi-controls { position: fixed; z-index: 10; bottom: 0; left: 0; width: 100%; padding: 12px max(20px, env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom)); background: #fffefaf5; border-top: 1px solid #d1d9ce; }
-.ludi-controls > * { max-width: 740px; margin: auto; }
-.ludi-controls p { font-size: 14px; text-align: center; }
-.ludi-controls p[role=alert] { color: #9d281e; margin-bottom: 8px; }
-.ludi-notice { max-width: 780px; margin: 12px auto; border-radius: 10px; padding: 12px; background: #fff0cb; }
-.ludi-history { margin-top: 24px; }
-.ludi-history section { border-top: 1px solid #d1d9ce; padding: 16px 0; }
-.ludi-history h2 { font-size: 18px; }
-.ludi-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-@media (max-width: 660px) { .ludi-filters { grid-template-columns: 1fr 1fr; } .ludi-catalog, .ludi-game-layout.is-lobby { grid-template-columns: 1fr; } .ludi-top { margin-bottom: 20px; } }
-@media (max-height: 500px) and (orientation: landscape) { .ludi-page { padding-top: 12px; } .ludi-top { margin-bottom: 8px; } .ludi-page h1 { font-size: 26px; margin-bottom: 16px; } .ludi-controls { padding-top: 8px; } .ludi-card { padding: 20px; } }
+/* Ludi tokens are scoped: the original Doot games retain their own design system. */
+body[data-ludi] { background: #faf9f6; transition: none; }
+body[data-ludi]::after { content: none; }
+.ludi-page {
+  --l-paper: #faf9f6;
+  --l-surface: #ffffff;
+  --l-ink: #24382e;
+  --l-muted: #59675e;
+  --l-line: #d5dcd5;
+  --l-action: #254e3b;
+  --l-action-hover: #183c2b;
+  --l-yellow: #f2d45c;
+  --l-social: #e8e0f2;
+  --l-quiz: #ddece1;
+  --l-success: #e4efe6;
+  --l-error: #9d3029;
+  --l-error-bg: #fbece8;
+  --l-warning: #f7edc9;
+  --l-space-1: 4px;
+  --l-space-2: 8px;
+  --l-space-3: 12px;
+  --l-space-4: 16px;
+  --l-space-5: 24px;
+  --l-space-6: 32px;
+  --l-space-7: 48px;
+  --l-space-8: 64px;
+  --l-radius-sm: 8px;
+  --l-radius: 12px;
+  --l-radius-lg: 24px;
+  --l-motion-fast: 120ms;
+  --l-motion-enter: 180ms;
+  --font-display: 'Figtree', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, sans-serif;
+  --ink: var(--l-ink);
+  --primary: var(--l-action);
+  min-height: 100dvh;
+  color: var(--l-ink);
+  background: var(--l-paper);
+  font: 400 16px/1.5 var(--font-body);
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  -webkit-tap-highlight-color: transparent;
+}
+.ludi-page *, .ludi-page *::before, .ludi-page *::after { box-sizing: border-box; }
+.ludi-page h1, .ludi-page h2, .ludi-page h3 { font-family: var(--font-display); font-weight: 800; text-wrap: balance; overflow-wrap: anywhere; }
+.ludi-page h1 { font-size: clamp(32px, 4vw, 48px); line-height: 1.1; letter-spacing: -.045em; margin: 0 0 var(--l-space-5); }
+.ludi-page h2 { font-size: 24px; line-height: 1.2; letter-spacing: -.03em; margin: 0 0 var(--l-space-3); }
+.ludi-page h3 { font-size: 18px; line-height: 1.3; letter-spacing: -.015em; }
+.ludi-page p { margin: 0 0 var(--l-space-4); }
+.ludi-page a { color: inherit; }
+.ludi-page button, .ludi-page input, .ludi-page select { font: inherit; }
+.ludi-page button, .ludi-page summary, .ludi-page a { touch-action: manipulation; }
+.ludi-page :focus-visible { outline: 3px solid var(--l-action); outline-offset: 4px; }
+.ludi-page h1:focus { outline: none; }
+.ludi-page :where(a, button, input, select, summary) { scroll-margin-block: 24px 120px; }
+.ludi-top { max-width: 1040px; min-height: 44px; margin: 0 auto var(--l-space-7); display: flex; align-items: center; justify-content: space-between; gap: var(--l-space-4); }
+.ludi-brand { display: inline-flex; align-items: baseline; gap: 3px; min-height: 44px; font-size: 34px; font-weight: 800; letter-spacing: -.075em; text-decoration: none; line-height: 1.2; }
+.ludi-brand-dot { width: 8px; height: 8px; background: var(--l-yellow); border-radius: 50%; margin-left: 2px; }
+.ludi-top-context { color: var(--l-muted); font-size: 14px; text-align: right; max-width: 62%; overflow-wrap: anywhere; }
+.ludi-main { max-width: 1040px; margin: auto; }
+.ludi-narrow { max-width: 480px; margin: auto; }
+.ludi-eyebrow { display: block; color: var(--l-muted); font-size: 12px; line-height: 1.5; text-transform: uppercase; letter-spacing: .09em; font-weight: 700; }
+.ludi-page .ludi-small { font-size: 14px; color: var(--l-muted); line-height: 1.5; }
+.ludi-lead { font-size: 18px; color: var(--l-muted); max-width: 40ch; }
+.ludi-primary, .ludi-secondary, .ludi-text-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--l-space-3); min-height: 48px; padding: 12px 20px; border: 1px solid transparent; border-radius: var(--l-radius); font-weight: 700 !important; text-align: center; text-decoration: none; cursor: pointer; transition: background var(--l-motion-fast), border-color var(--l-motion-fast), transform var(--l-motion-fast); }
+.ludi-page .ludi-primary { background: var(--l-action); color: white; width: 100%; }
+.ludi-secondary { background: transparent; border-color: var(--l-line); color: var(--l-ink); }
+.ludi-text-button { background: transparent; color: var(--l-ink); text-decoration: underline; text-underline-offset: 4px; padding-inline: 4px; }
+.ludi-page button:disabled { background: #e3e7e1; color: #657167; border-color: transparent; cursor: not-allowed; }
+.ludi-page button:active:not(:disabled), .ludi-page a.ludi-primary:active { transform: translateY(1px); }
+@media (hover: hover) {
+  .ludi-primary:hover:not(:disabled) { background: var(--l-action-hover); }
+  .ludi-secondary:hover:not(:disabled) { background: #edf0e9; border-color: #a5b2a7; }
+  .ludi-text-button:hover { text-decoration-thickness: 2px; }
+}
+.ludi-page input:not([type=radio]), .ludi-page select { display: block; width: 100%; min-height: 52px; background: var(--l-surface); color: var(--l-ink); border: 1px solid #9ba99d; border-radius: var(--l-radius); padding: 12px 14px; font-size: 16px; margin: 8px 0 20px; }
+.ludi-page input::placeholder { color: #778177; }
+.ludi-page label { font-weight: 600; }
+.ludi-page input[aria-invalid=true] { border-color: var(--l-error); }
+.ludi-form-heading { margin-bottom: var(--l-space-6); }
+.ludi-form-heading .ludi-game-mark { margin-bottom: var(--l-space-5); }
+.ludi-form-note { margin-top: var(--l-space-5) !important; }
+.ludi-error { padding: 12px 16px; background: var(--l-error-bg); border-left: 3px solid var(--l-error); border-radius: var(--l-radius-sm); color: var(--l-error); }
+.ludi-form-details { margin-top: var(--l-space-5); color: var(--l-muted); font-size: 14px; }
+.ludi-page summary { cursor: pointer; min-height: 44px; padding-block: 10px; }
+.ludi-form-details p { margin-top: var(--l-space-2); }
+.ludi-game-mark { width: 56px; height: 56px; color: var(--l-ink); flex-shrink: 0; }
+.ludi-game-mark.social { color: #614a78; }
+.ludi-game-mark.quiz { color: #315d46; }
+.ludi-avatar { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--l-quiz); font-size: 16px; font-weight: 800; flex-shrink: 0; }
+.ludi-avatar:nth-child(even), .ludi-roster li:nth-child(even) .ludi-avatar { background: var(--l-social); }
+.ludi-roster { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--l-space-3); }
+.ludi-roster li { display: flex; align-items: center; gap: var(--l-space-3); min-width: 0; }
+.ludi-roster-name { overflow-wrap: anywhere; font-weight: 700; }
+.ludi-roster-note { display: block; font-size: 13px; font-weight: 400; color: var(--l-muted); }
+.ludi-roster-empty .ludi-avatar { background: transparent; border: 1px dashed #8d9b90; }
+.ludi-roster-empty { color: var(--l-muted); }
+.ludi-page .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (min-width: 700px) { .ludi-page { padding-inline: max(32px, env(safe-area-inset-left)) max(32px, env(safe-area-inset-right)); } }
+@media (prefers-reduced-motion: reduce) { .ludi-page *, .ludi-page *::before, .ludi-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
