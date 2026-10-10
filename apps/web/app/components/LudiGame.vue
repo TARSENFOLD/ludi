@@ -6,7 +6,11 @@ const view = shallowRef<LudiView>()
 const choice = ref<number | null>(null)
 const busy = ref(false)
 const error = ref('')
+const heading = ref<HTMLElement>()
+const controls = ref<HTMLElement>()
+const controlsHeight = ref(112)
 let unsubscribe: (() => void) | undefined
+let resizeControls: ResizeObserver | undefined
 watch(() => props.session, (session) => {
   unsubscribe?.()
   unsubscribe = session.observe((next) => {
@@ -15,10 +19,38 @@ watch(() => props.session, (session) => {
     view.value = next
   })
 }, { immediate: true })
-onUnmounted(() => { unsubscribe?.(); props.session.disconnect() })
+onMounted(() => {
+  if (controls.value) {
+    resizeControls = new ResizeObserver(([entry]) => { if (entry) controlsHeight.value = Math.ceil(entry.target.getBoundingClientRect().height) })
+    resizeControls.observe(controls.value)
+  }
+})
+onUnmounted(() => { unsubscribe?.(); resizeControls?.disconnect(); props.session.disconnect() })
 const currentAction = computed(() => props.connection?.state === 'ended' ? undefined : view.value?.actions[0])
 const me = computed(() => view.value?.players.find((p) => p.id === view.value?.context.participantId))
 const answerRevealed = computed(() => view.value?.reveal?.correctIndex !== undefined)
+const stageKey = computed(() => view.value ? `${view.value.match}-${view.value.round}-${view.value.phase}-${view.value.handoff?.name ?? ''}` : '')
+watch(stageKey, async (_, previous) => {
+  if (!previous) return
+  await nextTick()
+  heading.value?.focus({ preventScroll: true })
+  window.scrollTo({ top: 0, behavior: 'instant' })
+})
+const waitingMessage = computed(() => {
+  const v = view.value
+  if (!v) return ''
+  if (props.connection?.state === 'ended') return 'Esta ligação terminou.'
+  if (v.phase === 'lobby') return v.players.length < 2 ? 'Envia o convite. A outra pessoa entra pelo link.' : 'Já estão os dois. Quem criou a sala pode começar.'
+  if (v.phase === 'results') return 'Partida concluída. Quem criou a sala pode iniciar outra.'
+  if (v.roundState === 'reveal') return 'Resultado revelado. Quem criou a sala avança.'
+  if (v.roundState === 'locked') return 'Todos responderam. Quem criou a sala pode revelar.'
+  return 'A tua resposta está guardada. Falta a outra pessoa.'
+})
+const actionHint = computed(() => {
+  if (currentAction.value?.type === 'answer') return choice.value === null ? 'Escolhe uma resposta para continuar.' : 'Escolha feita. Falta confirmar.'
+  return ''
+})
+const busyLabel = computed(() => ({ start: 'A começar…', answer: 'A confirmar…', reveal: 'A revelar…', next: 'A avançar…', finish: 'A terminar…', replay: 'A preparar…', ready: 'A preparar…' })[currentAction.value?.type ?? 'answer'])
 async function act() {
   const action = currentAction.value
   const v = view.value
@@ -32,31 +64,41 @@ async function act() {
 </script>
 
 <template>
-  <main v-if="view" class="ludi-page ludi-game">
+  <main v-if="view" class="ludi-page ludi-game" :style="{ '--l-controls-height': `${controlsHeight}px` }">
     <LudiHeader :context="me ? `${view.title} · ${me.name}` : view.title" />
-    <p v-if="connection?.message" role="status" class="ludi-notice">{{ connection.message }} <NuxtLink v-if="connection.state === 'ended'" to="/duo">Criar sala</NuxtLink></p>
+    <p v-if="connection?.message" role="status" class="ludi-notice">{{ connection.message }}</p>
     <div class="ludi-game-layout" :class="{ 'is-lobby': view.phase === 'lobby' && view.code }">
-      <section class="ludi-question" aria-live="polite" aria-atomic="true">
+      <section :key="stageKey" class="ludi-question ludi-stage-enter" :class="{ 'is-answering': currentAction?.type === 'answer', 'is-handoff': !!view.handoff }">
+        <LudiProgress v-if="view.phase === 'active'" :round="view.round" :total="view.totalRounds" />
         <template v-if="view.phase === 'lobby'">
-          <LudiGameMark :game="view.gameId" /><p class="ludi-eyebrow">{{ view.title }}</p>
-          <h1>{{ view.context.mode === 'room' ? (view.players.length === 2 ? 'A dupla está pronta.' : 'Falta a outra metade.') : 'Prontos para o desafio?' }}</h1>
-          <p v-if="view.context.mode !== 'room'">Cinco perguntas. Um ponto por acerto, sem temporizador.</p>
-          <p v-else-if="view.players.length < 2">Convida a outra pessoa para começar.</p>
-          <p v-else>{{ view.context.permissions.control ? 'Já estão os dois aqui. Podes começar!' : 'Já estão os dois aqui. A pessoa que criou a sala pode começar.' }}</p>
+          <LudiGameMark :game="view.gameId" />
+          <p class="ludi-eyebrow">{{ view.title }}</p>
+          <h1 ref="heading" tabindex="-1">{{ view.context.mode === 'room' ? (view.players.length === 2 ? 'A dupla está pronta.' : 'Falta a outra metade.') : 'Prontos para o desafio?' }}</h1>
+          <p v-if="view.context.mode !== 'room'" class="ludi-lead">Cinco perguntas. Um ponto por acerto, sem temporizador.</p>
+          <p v-else-if="view.players.length < 2" class="ludi-lead">Um convite, dois aparelhos. A conversa começa já.</p>
+          <p v-else class="ludi-lead">{{ view.context.permissions.control ? 'Já estão os dois aqui. Podes começar!' : 'Já estão os dois aqui. Quem criou a sala pode começar.' }}</p>
+          <LudiRoster v-if="!view.code" :players="view.players" :me="view.context.mode === 'solo' ? view.context.participantId : undefined" />
         </template>
         <template v-else-if="view.handoff">
-          <p class="ludi-eyebrow">Passar o aparelho · Ronda {{ view.round + 1 }} de {{ view.totalRounds }}</p>
-          <h1>É a vez de {{ view.handoff.name }}.</h1>
-          <p>Entrega o aparelho e toca em «Estou pronto/a» quando estiver contigo.</p>
+          <p class="ludi-eyebrow">Passar o aparelho</p>
+          <span class="ludi-handoff-mark" aria-hidden="true">↗</span>
+          <h1 ref="heading" tabindex="-1">É a vez de<br>{{ view.handoff.name }}.</h1>
+          <p class="ludi-lead">Entrega o aparelho. A próxima resposta fica entre a pessoa e o ecrã.</p>
+          <p class="ludi-small">Toca em «Estou pronto/a» quando o aparelho estiver contigo.</p>
         </template>
         <template v-else-if="view.phase === 'active' && view.content">
-          <p class="ludi-eyebrow">{{ view.content.kind === 'poll' ? 'Escolha' : 'Desafio' }} · Ronda {{ view.round + 1 }} de {{ view.totalRounds }}</p>
-          <h1>{{ view.content.prompt }}</h1>
-          <fieldset v-if="currentAction?.type === 'answer'" class="ludi-options">
+          <div class="ludi-prompt">
+            <p class="ludi-eyebrow">{{ view.content.kind === 'poll' ? 'A tua escolha' : 'Desafio' }}</p>
+            <h1 ref="heading" tabindex="-1">{{ view.content.prompt }}</h1>
+            <p v-if="currentAction?.type === 'answer'" class="ludi-small ludi-prompt-note">{{ view.content.kind === 'poll' ? 'Não há resposta certa. Vai pela tua.' : 'Sem pressa. Escolhe e confirma.' }}</p>
+          </div>
+          <fieldset v-if="currentAction?.type === 'answer'" class="ludi-options" :disabled="busy">
             <legend class="sr-only">Escolhe uma resposta</legend>
             <label v-for="(option, index) in view.content.options" :key="index" :class="{ selected: choice === index }">
-              <input v-model="choice" type="radio" name="answer" :value="index" :disabled="busy">
-              <span>{{ option }}</span>
+              <input v-model="choice" type="radio" name="answer" :value="index">
+              <span class="ludi-option-letter" aria-hidden="true">{{ String.fromCharCode(65 + index) }}</span>
+              <span class="ludi-option-text">{{ option }}</span>
+              <span class="ludi-option-check" aria-hidden="true">{{ choice === index ? '✓' : '' }}</span>
             </label>
           </fieldset>
           <div v-else-if="view.reveal" class="ludi-reveal">
@@ -69,14 +111,17 @@ async function act() {
               <p v-for="(option, i) in view.content.options" :key="i">{{ option }} <strong>{{ view.reveal.counts?.[i] ?? 0 }}</strong></p>
             </template>
           </div>
-          <div v-else class="ludi-reveal">
-            <h2>{{ view.roundState === 'locked' ? 'Todos responderam!' : 'Resposta confirmada' }}</h2>
-            <p v-if="view.ownChoice !== undefined">Escolheste: {{ view.content.options[view.ownChoice] }}</p>
-            <p>{{ view.roundState === 'locked' ? (view.context.permissions.control ? 'Podes revelar o resultado.' : 'A aguardar a revelação.') : 'A aguardar a outra pessoa…' }}</p>
+          <div v-else class="ludi-confirmed">
+            <span class="ludi-confirmed-check" aria-hidden="true">✓</span>
+            <div><h2>{{ view.roundState === 'locked' ? 'Todos responderam!' : 'Resposta confirmada.' }}</h2>
+              <p v-if="view.ownChoice !== undefined">A tua escolha: <strong>{{ view.content.options[view.ownChoice] }}</strong></p>
+              <p v-if="view.roundState === 'locked' && view.context.permissions.control" class="ludi-small">Vamos descobrir o resultado?</p>
+              <p v-else class="ludi-small">A tua resposta fica guardada, mesmo que precises de voltar.</p>
+            </div>
           </div>
         </template>
         <template v-else-if="view.phase === 'results'">
-          <p class="ludi-eyebrow">Partida concluída</p><h1>Mais uma?</h1>
+          <p class="ludi-eyebrow">Partida concluída</p><h1 ref="heading" tabindex="-1">Mais uma?</h1>
           <p>{{ view.title === 'Entre Nós' ? 'As escolhas dão conversa. Os desafios dão pontos.' : 'Um ponto por cada resposta certa.' }}</p>
         </template>
         <ol v-if="view.scores" class="ludi-scores" aria-label="Pontuação">
@@ -91,10 +136,14 @@ async function act() {
       </section>
       <LudiRoomInfo v-if="view.code" :code="view.code" :players="view.players" :me="view.context.participantId" :lobby="view.phase === 'lobby'" />
     </div>
-    <footer class="ludi-controls">
-      <p v-if="error" role="alert">{{ error }}</p>
-      <button v-if="currentAction" class="ludi-primary" :disabled="busy || (currentAction.type === 'answer' && choice === null)" @click="act">{{ busy ? 'A guardar…' : currentAction.label }} <span aria-hidden="true">→</span></button>
-      <p v-else role="status">{{ connection?.state === 'ended' ? 'Ligação terminada.' : view.phase === 'lobby' ? 'A aguardar para começar…' : 'A aguardar a outra pessoa…' }}</p>
+    <footer ref="controls" class="ludi-controls" :aria-busy="busy">
+      <div class="ludi-controls-inner">
+        <p v-if="error" class="ludi-error" role="alert">{{ error }}</p>
+        <p v-if="actionHint" class="ludi-control-hint" role="status">{{ actionHint }}</p>
+        <button v-if="currentAction" class="ludi-primary" :disabled="busy || (currentAction.type === 'answer' && choice === null)" @click="act">{{ busy ? busyLabel : currentAction.label }} <span aria-hidden="true">→</span></button>
+        <NuxtLink v-else-if="connection?.state === 'ended'" class="ludi-primary" to="/duo">Criar outra sala <span aria-hidden="true">→</span></NuxtLink>
+        <p v-else class="ludi-waiting" role="status"><span class="ludi-status-dot" aria-hidden="true" />{{ waitingMessage }}</p>
+      </div>
     </footer>
   </main>
 </template>
