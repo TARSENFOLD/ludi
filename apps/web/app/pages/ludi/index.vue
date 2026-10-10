@@ -7,7 +7,8 @@ import { presentLudiGame } from '../../utils/ludi-presentation'
 useHead({ title: 'Ludi · Encontra o próximo momento', htmlAttrs: { lang: 'pt-PT' } })
 useHead({ link: [{ key: 'ludi-editorial-font', rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Fraunces:ital,wght,SOFT,WONK@0,700,30,1;1,700,30,1&display=swap' }] })
 const mode = ref<LudiMode | ''>('')
-const publicLudi = useRuntimeConfig().public.ludiPublicOnly
+const config = useRuntimeConfig()
+const publicLudi = config.public.ludiPublicOnly
 const players = ref(0)
 const minutes = ref(0)
 const vibe = ref<LudiVibe | ''>('')
@@ -32,7 +33,7 @@ function reset() { mode.value = ''; players.value = 0; minutes.value = 0; vibe.v
         <p class="ludi-eyebrow">Pequenos jogos / bons encontros</p>
         <h1 id="discovery-title">Quem está<br><em>por aí?</em></h1>
         <div class="ludi-hero-seal" aria-hidden="true"><svg viewBox="0 0 160 160" fill="none"><path d="m80 1 13 22 24-9 2 26 26 2-9 24 23 14-23 14 9 24-26 2-2 26-24-9-13 22-14-22-24 9-2-26-26-2 9-24L1 80l22-14-9-24 26-2 2-26 24 9Z" fill="currentColor" /></svg><span>SÓ MAIS<strong>uma!</strong><i>↗</i></span></div>
-        <div class="ludi-hero-note"><span class="ludi-note-line" aria-hidden="true" /><p>Uma pausa pequena.<br>Uma boa história depois.</p><span class="ludi-small">A solo, à mesa ou a dois à distância.</span></div>
+        <div class="ludi-hero-note"><span class="ludi-note-line" aria-hidden="true" /><p>Uma pausa pequena.<br>Uma boa história depois.</p><span class="ludi-small">A solo, à mesa ou em grupo à distância.</span></div>
       </section>
       <div id="jogos" class="ludi-selection-heading"><h2>Hoje, apetece…</h2><span>ESCOLHE A COMPANHIA</span></div>
       <form class="ludi-discovery-controls" aria-label="Encontrar um jogo" @submit.prevent>

@@ -1,11 +1,6 @@
 import { LocalRoundAuthority } from "@doot-games/engine/local";
-import {
-  requireMode,
-  type LudiAction,
-  type LudiSession,
-  type LudiView,
-  type RuleEnvironment,
-} from "@doot-games/sdk/ludi";
+import { type LudiAction, type LudiSession, type LudiView } from "@doot-games/games/ludi/contracts";
+import { requireMode, type RuleEnvironment } from "@doot-games/sdk/ludi";
 import { getLudiManifest } from "./catalog";
 import { MatchController, defineRounds } from "./controller";
 import { desafioRapidoContent } from "./content/desafio-rapido";

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LudiView } from '@doot-games/sdk/ludi'
+import type { LudiView } from "@doot-games/games/ludi/contracts";
 const props = defineProps<{ scores: NonNullable<LudiView['scores']>; me?: string; final?: boolean }>()
 const best = computed(() => Math.max(0, ...props.scores.map(p => p.score)))
 const tied = computed(() => props.scores.filter(p => p.score === best.value).length > 1)

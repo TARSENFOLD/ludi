@@ -1,4 +1,4 @@
-import type { LudiAction, LudiSession, LudiView } from "@doot-games/sdk/ludi";
+import type { LudiAction, LudiSession, LudiView } from "@doot-games/games/ludi/contracts";
 
 export interface ConnectionState {
   state: "connected" | "reconnecting" | "ended";

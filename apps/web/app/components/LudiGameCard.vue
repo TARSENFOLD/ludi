@@ -13,6 +13,7 @@ const actions = computed(() => props.entry.game.modes.flatMap(spec => {
     <div class="ludi-tile-top"><span class="ludi-edition">{{ vibeLabels[entry.game.vibes[0] ?? ''] ?? 'Jogar' }}</span><span class="ludi-cover-sign" aria-hidden="true">✳</span></div>
     <div class="ludi-cover-copy"><p class="ludi-eyebrow">{{ entry.tagline }}</p><h2>{{ entry.game.name }}</h2></div>
     <LudiCoverArt v-if="entry.art" :game="entry.art" />
+    <div v-else-if="entry.game.id === 'na-mesma-onda'" class="ludi-art-fallback" aria-hidden="true"><LudiGameMark game="na-mesma-onda" /></div>
     <div v-else class="ludi-art-fallback" aria-hidden="true"><span>✳</span><span>↗</span><span>✳</span></div>
     <p class="ludi-tile-description">{{ entry.game.description }}</p>
     <div class="ludi-tile-actions">

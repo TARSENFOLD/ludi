@@ -3,7 +3,7 @@ import { LocalRuntime } from "./local";
 import { discoverGames } from "./catalog";
 import { guessRules } from "../blocks/guess/rules";
 import { pollRules } from "../blocks/poll/rules";
-import type { LudiView, LudiAction } from "@doot-games/sdk/ludi";
+import type { LudiView, LudiAction } from "@doot-games/games/ludi/contracts";
 
 describe("local contract proof, without Vue or relay", () => {
   for (const count of [1, 2, 6])
@@ -71,7 +71,7 @@ describe("local contract proof, without Vue or relay", () => {
         (g) => g.id,
       ),
     ).toEqual(["entre-nos"]);
-    expect(discoverGames({ mode: "room", players: 3 })).toEqual([]);
+    expect(discoverGames({ mode: "room", players: 3 }).map(g => g.id)).toEqual(["na-mesma-onda"]);
     expect(discoverGames({ mode: "same-device", minutes: 5 })).toEqual([]);
     expect(discoverGames({ players: 1 })[0]?.modes.map((m) => m.mode)).toEqual(["solo"]);
     expect(discoverGames({ mode: "same-device", players: 6, minutes: 8 })).toHaveLength(1);

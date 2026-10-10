@@ -8,7 +8,7 @@
  * (everyone is equidistant from the mean -> everyone scores 0), whereas an absolute
  * curve gives a fair gradient at any group size. Pure + deterministic.
  */
-import { ballparkCloseness } from '../ballpark/block'
+import { ballparkCloseness } from '../scoring/closeness'
 import { BASE_POINTS } from '../scoring'
 
 export interface SpectrumContent {

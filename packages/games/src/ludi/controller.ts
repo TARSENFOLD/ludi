@@ -1,26 +1,16 @@
 import type { RoundAuthority } from "@doot-games/engine/local";
 import {
-  actionSchema,
-  participantNameSchema,
-  validChoice,
-  type LudiAction,
-  type LudiManifest,
-  type LudiMode,
-  type LudiView,
-  type Participant,
-  type RoundReveal,
-  type RuleEnvironment,
-  requireMode,
+  actionEnvelopeSchema, participantNameSchema,
+  type LudiManifest, type LudiMode, type Participant, type RuleEnvironment, requireMode,
 } from "@doot-games/sdk/ludi";
-import { guessContentSchema, guessRules, type GuessContent } from "../blocks/guess/rules";
-import { pollContentSchema, pollRules, type PollContent } from "../blocks/poll/rules";
-
-export type LudiRound =
-  | { kind: "poll"; content: PollContent }
-  | { kind: "guess"; content: GuessContent };
+import type { LudiAction, LudiView, RoundReveal } from "./contracts";
+import type { LudiRound } from "./rounds";
+export { defineRounds } from "./rounds";
 export interface GameDefinition {
   manifest: LudiManifest;
   rounds: LudiRound[];
+  /** Optional per-room content source; never shared between room instances. */
+  nextRounds?: () => LudiRound[];
 }
 export class LudiError extends Error {
   constructor(
@@ -30,16 +20,6 @@ export class LudiError extends Error {
     super(message);
   }
 }
-export function defineRounds(
-  rounds: Array<{ kind: "poll" | "guess"; content: unknown }>,
-): LudiRound[] {
-  return rounds.map((r) =>
-    r.kind === "poll"
-      ? { kind: "poll", content: pollContentSchema.parse(r.content) }
-      : { kind: "guess", content: guessContentSchema.parse(r.content) },
-  );
-}
-
 /** Framework/transport-free Match coordinator. Only playerView crosses a session
  * boundary. Roster, all inputs and solutions remain owned by this authority. */
 export class MatchController {
@@ -112,13 +92,7 @@ export class MatchController {
     if (this.mode === "same-device" && id !== this.localActor()) return [];
     if (this.handoff) return [{ type: "ready", label: "Estou pronto/a" }];
     if (round.state === "open" && !this.authority.inputsFor(round.index).has(id)) {
-      return [
-        {
-          type: "answer",
-          label: "Confirmar resposta",
-          choices: this.roundAt(round.index).content.options.map((_, i) => i),
-        },
-      ];
+      return [this.roundAt(round.index).legalAnswer()];
     }
     if (round.state === "locked" && control) return [{ type: "reveal", label: "Ver resultado" }];
     if (round.state === "reveal" && control)
@@ -136,7 +110,7 @@ export class MatchController {
   }
   private async applyValidated(id: string, raw: unknown) {
     if (!this.hasPlayer(id)) throw new LudiError(403, "Entra na sala para jogar.");
-    const parsed = actionSchema.safeParse(raw);
+    const parsed = actionEnvelopeSchema.passthrough().safeParse(raw);
     if (!parsed.success) throw new LudiError(400, "Ação inválida.");
     const action = parsed.data;
     const fingerprint = JSON.stringify(action);
@@ -151,20 +125,21 @@ export class MatchController {
       throw new LudiError(409, "A partida avançou. Atualiza a tua visão.");
     if (!this.legalActions(id).some((a) => a.type === action.type))
       throw new LudiError(409, "Esta ação já não está disponível.");
-    if (action.type !== "answer" && action.choice !== undefined)
+    let input: unknown;
+    if (action.type === "answer") {
+      const validated = this.roundAt(round.index).parseAnswer(raw);
+      if (!validated) throw new LudiError(400, "Resposta inválida.");
+      input = validated.input;
+    } else if (!actionEnvelopeSchema.strict().safeParse(raw).success) {
       throw new LudiError(400, "Ação inválida.");
-    if (
-      action.type === "answer" &&
-      !validChoice(this.roundAt(round.index).content, { choice: action.choice })
-    )
-      throw new LudiError(400, "Escolha inválida.");
-    await this.apply(id, action);
+    }
+    await this.apply(id, action, input);
     this.seen.set(key, fingerprint);
     // Bounded replay cache; old round/match tokens still reject an evicted request.
     if (this.seen.size > 512) this.seen.delete(this.seen.keys().next().value ?? "");
     this.revision++;
   }
-  private async apply(id: string, action: LudiAction) {
+  private async apply(id: string, action: LudiAction, input?: unknown) {
     switch (action.type) {
       case "start":
         this.authority.start();
@@ -176,7 +151,7 @@ export class MatchController {
         break;
       case "answer": {
         const index = this.authority.state().round.index;
-        this.authority.submit(index, id, { choice: action.choice ?? -1 });
+        this.authority.submit(index, id, input);
         if (this.authority.inputsFor(index).size === this.players.length) {
           this.authority.lock();
           if (this.mode !== "room") this.authority.reveal();
@@ -198,6 +173,7 @@ export class MatchController {
         await this.authority.finish(this.scores());
         break;
       case "replay":
+        if (this.game.nextRounds) this.game.rounds = this.game.nextRounds();
         this.match++;
         this.authority.replay();
         this.authority.open();
@@ -210,42 +186,19 @@ export class MatchController {
     this.handoff = this.mode === "same-device";
   }
   private reveal(index: number): RoundReveal {
-    const r = this.roundAt(index);
-    if (r.kind === "guess") {
-      const answer = guessRules.answerOf(r.content);
-      const summary = guessRules.revealSummary({
-        content: r.content,
-        inputs: this.authority.inputsFor(index) as Map<string, { choice: number }>,
-        answer,
-        players: this.players.map((p) => ({ ...p, joinedAtIndex: 0 })),
-      }) as RoundReveal;
-      return { correctIndex: summary.correctIndex, correctLabel: summary.correctLabel };
-    }
-    const summary = pollRules.revealSummary({
-      content: r.content,
-      inputs: this.authority.inputsFor(index) as Map<string, { choice: number }>,
-      answer: undefined,
-      players: this.players.map((p) => ({ ...p, joinedAtIndex: 0 })),
-    }) as { counts: number[] };
-    return { counts: summary.counts };
+    return this.roundAt(index).reveal(this.authority.inputsFor(index));
   }
   private scores() {
     const state = this.authority.state();
-    const last =
-      state.round.index - (state.phase === "results" || state.round.state === "reveal" ? 0 : 1);
-    const rounds = this.game.rounds.flatMap((r, index) =>
-      r.kind === "guess" && index <= last ? [{ index, content: r.content }] : [],
-    );
-    const scores = guessRules.aggregate({
-      rounds,
-      players: this.players.map((p) => ({ ...p, joinedAtIndex: 0 })),
-      inputsFor: (i) => this.authority.inputsFor(i) as Map<string, { choice: number }>,
-      answerFor: (i) =>
-        guessRules.answerOf((this.game.rounds[i] as { content: GuessContent }).content),
-    });
-    return (scores.leaderboard ?? []).flatMap((p) =>
-      p.id ? [{ id: p.id, name: p.name, score: p.score }] : [],
-    );
+    const last = state.round.index - (state.phase === "results" || state.round.state === "reveal" ? 0 : 1);
+    const totals = new Map(this.players.map(p => [p.id, 0]));
+    for (let i = 0; i <= last; i++) {
+      for (const [id, score] of this.roundAt(i).scores(this.authority.inputsFor(i), this.players)) {
+        if (totals.has(id)) totals.set(id, totals.get(id)! + score);
+      }
+    }
+    return this.players.map(p => ({ ...p, score: totals.get(p.id)! }))
+      .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, "pt"));
   }
   /** Single allowlist serializer for initial HTTP, command replies, SSE and reconnect.
    * Deliberately never spreads content or authority snapshots into a public object. */
@@ -275,13 +228,9 @@ export class MatchController {
     };
     if (this.handoff) view.handoff = { name: this.players[this.turn]?.name ?? "" };
     if (phase === "active" && !this.handoff) {
-      view.content = {
-        kind: r.kind,
-        prompt: r.content.prompt,
-        options: r.content.options.map((o) => o.label),
-      };
-      const input = this.authority.inputsFor(round.index).get(id) as { choice: number } | undefined;
-      if (input) view.ownChoice = input.choice;
+      view.content = r.publicContent();
+      const input = this.authority.inputsFor(round.index).get(id);
+      if (input !== undefined) Object.assign(view, r.ownView(input));
       if (round.state === "reveal") {
         view.reveal = this.reveal(round.index);
         view.scores = this.scores();
@@ -289,11 +238,7 @@ export class MatchController {
     }
     if (phase === "results") {
       view.scores = this.scores();
-      view.history = this.game.rounds.map((r, i) => ({
-        prompt: r.content.prompt,
-        options: r.content.options.map((o) => o.label),
-        reveal: this.reveal(i),
-      }));
+      view.history = this.game.rounds.map((r, i) => r.history(this.authority.inputsFor(i)));
     }
     return view;
   }

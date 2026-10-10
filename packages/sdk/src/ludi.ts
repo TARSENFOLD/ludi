@@ -52,40 +52,23 @@ export function validChoice(content: { options: unknown[] }, input: unknown): bo
   const parsed = choiceSchema.safeParse(input);
   return parsed.success && parsed.data.choice < content.options.length;
 }
-export const actionSchema = z
-  .object({
-    id: z
-      .string()
-      .min(8)
-      .max(80)
-      .regex(/^[\w-]+$/),
-    match: z.number().int().positive(),
-    round: z.number().int().nonnegative(),
-    type: z.enum(["start", "answer", "reveal", "next", "finish", "replay", "ready"]),
-    choice: z.number().int().nonnegative().optional(),
-  })
-  .strict();
-export type LudiAction = z.infer<typeof actionSchema>;
-export interface LegalAction {
-  type: LudiAction["type"];
+export const actionEnvelopeSchema = z.object({
+  id: z.string().min(8).max(80).regex(/^[\w-]+$/),
+  match: z.number().int().positive(),
+  round: z.number().int().nonnegative(),
+  type: z.enum(["start", "answer", "reveal", "next", "finish", "replay", "ready"]),
+});
+export type ActionEnvelope = z.infer<typeof actionEnvelopeSchema>;
+export type LudiAction<Payload extends object = object> = ActionEnvelope & Payload;
+export type LegalAction<Descriptor extends object = object> = {
+  type: ActionEnvelope["type"];
   label: string;
-  choices?: number[];
-}
+} & Descriptor;
 export interface Participant {
   id: string;
   name: string;
 }
-export interface PublicRound {
-  kind: "poll" | "guess";
-  prompt: string;
-  options: string[];
-}
-export interface RoundReveal {
-  counts?: number[];
-  correctIndex?: number;
-  correctLabel?: string;
-}
-export interface LudiView {
+export interface SessionView {
   context: SessionContext;
   gameId: string;
   title: string;
@@ -101,18 +84,14 @@ export interface LudiView {
   roundState: "ready" | "open" | "locked" | "reveal";
   players: Participant[];
   handoff?: { name: string };
-  content?: PublicRound;
-  ownChoice?: number;
-  reveal?: RoundReveal;
-  scores?: Array<Participant & { score: number }>;
-  history?: Array<{ prompt: string; options: string[]; reveal: RoundReveal }>;
   actions: LegalAction[];
 }
+export type LudiView<GameView extends object = object> = SessionView & GameView;
 /** Implementations deliver snapshots from playerView, never the full authority. */
-export interface LudiSession {
-  observe(listener: (view: LudiView) => void): () => void;
+export interface LudiSession<View extends SessionView = SessionView, Action extends ActionEnvelope = ActionEnvelope> {
+  observe(listener: (view: View) => void): () => void;
   availableActions(): LegalAction[];
-  send(action: LudiAction): Promise<void>;
+  send(action: Action): Promise<void>;
   disconnect(): void;
 }
 export interface RuleEnvironment {

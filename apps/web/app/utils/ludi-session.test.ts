@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { LudiView } from "@doot-games/sdk/ludi";
+import type { LudiView } from "@doot-games/games/ludi/contracts";
 import { RoomSession } from "./ludi-session";
 
 class Events {

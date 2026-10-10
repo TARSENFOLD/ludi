@@ -14,26 +14,14 @@ import {
   type ResultsFragment,
   type RevealContext,
   defineBlock,
-  promptText,
-  z,
 } from '@doot-games/sdk'
 import SpectrumHost from './SpectrumHost.vue'
 import SpectrumPlayer from './SpectrumPlayer.vue'
 import SpectrumReveal from './SpectrumReveal.vue'
 import { type SpectrumContent, type SpectrumInput, scoreSpectrum } from './logic'
 
-export const spectrumContentSchema = z.object({
-  prompt: promptText('Pineapple on pizza'),
-  leftLabel: z.string().min(1).default('Disgusting').describe('The left pole of the dial.'),
-  rightLabel: z.string().min(1).default('Delicious').describe('The right pole of the dial.'),
-  timer: z
-    .number()
-    .int()
-    .nonnegative()
-    .nullable()
-    .default(30)
-    .describe('Seconds to place your dial. Turn off for an untimed round.'),
-})
+export { spectrumContentSchema } from './rules'
+import { spectrumContentSchema } from './rules'
 
 /** The public reveal payload phones read: the consensus + all placements. */
 export interface SpectrumRevealSummary {
