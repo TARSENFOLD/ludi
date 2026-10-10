@@ -81,7 +81,7 @@ export class LudiRoomService {
   private pending = new Map<string, { token: string; ip: string }>();
   private creations = new Map<string, { gameId: string; name: unknown; result: Promise<string>; code?: string }>();
   private sweepTimer: ReturnType<typeof setInterval>;
-  constructor(private environment: RuleEnvironment = { now: Date.now, random: Math.random }, private allowPreview = false) {
+  constructor(private environment: RuleEnvironment = { now: Date.now, random: Math.random }) {
     this.sweepTimer = setInterval(() => this.sweep(), 60_000);
     this.sweepTimer.unref?.();
   }
@@ -129,7 +129,7 @@ export class LudiRoomService {
     this.pending.set(code, { token, ip });
     let controller: MatchController | undefined;
     try {
-      const definition = createRoomDefinition(gameId, this.environment, this.allowPreview);
+      const definition = createRoomDefinition(gameId, this.environment);
       const id = randomUUID();
       controller = new MatchController(
         definition,
@@ -244,4 +244,4 @@ export class LudiRoomService {
     for (const code of this.rooms.keys()) this.expire(code);
   }
 }
-export const ludiRooms = new LudiRoomService(undefined, process.env.LUDI_ONDA_PREVIEW === "1");
+export const ludiRooms = new LudiRoomService();

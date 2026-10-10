@@ -65,9 +65,8 @@ export function getLudiManifest(id: string): LudiManifest {
   return game;
 }
 /** Match all constraints against the SAME implemented mode. Duration is an estimate. */
-export function discoverGames(filter: DiscoveryFilter, includePreview = false) {
+export function discoverGames(filter: DiscoveryFilter) {
   return ludiCatalog.flatMap((game) => {
-    if (game.id === "na-mesma-onda" && !includePreview) return [];
     if (filter.vibe && !game.vibes.includes(filter.vibe)) return [];
     const modes = game.modes.filter(
       (spec) =>

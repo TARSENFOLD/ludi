@@ -3,8 +3,8 @@ import { LudiRoomService } from './ludi-rooms';
 import type { LudiAction, LudiView } from '@doot-games/games/ludi/contracts';
 const services: LudiRoomService[] = [];
 let sequence = 0;
-function service(preview = true) {
-  const s = new LudiRoomService({ now: () => 1000, random: () => 0.31 }, preview);
+function service() {
+  const s = new LudiRoomService({ now: () => 1000, random: () => 0.31 });
   services.push(s); return s;
 }
 function command(v: LudiView, type: LudiAction['type'], value?: number): LudiAction {
@@ -85,7 +85,6 @@ describe('Na Mesma Onda: server authority and filtered participant views', () =>
     const s = service();
     for (const id of ['../../games/spectrum', '__proto__', 'desafio-rapido', 'unknown'])
       await expect(s.create('x', 'Ana', 'create-test', 'local', id)).rejects.toThrow('indisponível');
-    await expect(service(false).create('x', 'Ana', 'create-test', 'local', 'na-mesma-onda')).rejects.toThrow('indisponível');
     const a = await s.create('x', 'Ana', 'create-test', 'local', 'na-mesma-onda');
     expect((await s.create('x', 'Ana', 'create-test', 'local', 'na-mesma-onda')).code).toBe(a.code);
     await expect(s.create('x', 'Ana', 'create-test', 'local', 'entre-nos')).rejects.toThrow('Identificador');

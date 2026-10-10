@@ -2,7 +2,7 @@
 
 Data: 10 outubro 2026. Branch: `feat/na-mesma-onda`.
 
-**Estado: implementado para pré-visualização; não Ludi-ready.** Validação visual no Browser e teste físico da escala em iPhone e outro aparelho pendentes. Não publicado no VPS.
+**Estado: Ludi-ready; publicação em preparação.** O utilizador confirmou «passou» no teste físico em iPhone e outro aparelho: escala, retrato/paisagem, confirmação, recarregamento para retoma, conclusão e revanche. O controlo automatizado do Browser continuou indisponível; não se reivindica uma inspeção visual automatizada nem uma sessão VoiceOver separada. A validação visual em aparelhos reais é a evidência desta entrega.
 
 ## Implementação
 
@@ -29,23 +29,16 @@ Data: 10 outubro 2026. Branch: `feat/na-mesma-onda`.
 
 As provas de regras/HTTP não substituem validação de toque, layout nem leitor de ecrã real.
 
-## Ativar apenas num ambiente de teste
+## Disponibilidade após validação física
 
-A disponibilidade fica desligada por omissão. Para a pré-visualização, configurar **ambos**:
+A restrição temporária de preview foi removida após a confirmação do utilizador. O catálogo apresenta o terceiro jogo e o registry remoto aceita o seu ID, sem flags adicionais. Os IDs desconhecidos continuam recusados.
 
-```sh
-LUDI_ONDA_PREVIEW=1
-NUXT_PUBLIC_LUDI_ONDA_PREVIEW=true
-```
-
-A primeira variável permite o jogo no registry do servidor; a segunda apresenta a entrada/card no shell. No desenvolvimento, `LUDI_ONDA_PREVIEW=1` também fornece o valor inicial de runtimeConfig. Os convites continuam em `/ludi/salas/:code`.
-
-- Entrada: `/ludi/na-mesma-onda`.
+- Entrada: `/ludi/na-mesma-onda`; convites: `/ludi/salas/:code`.
 - Fixtures de desenvolvimento: `/dev/ludi-state?game=onda&state=answer`, `state=locked`, `state=reveal-right`, `state=results`, com `players=2` ou `players=6`.
-- Frame para dimensões reais: `/dev/ludi-review?width=390&height=844&screen=...` (codificar a URL da fixture em `screen`). Rotas `/dev` continuam excluídas do build de produção.
-- Catálogo normal/API rejeitam o jogo enquanto preview estiver desligado. A CI verifica os dois perfis separadamente.
+- Frame: `/dev/ludi-review?width=390&height=844&screen=...` (codificar a URL em `screen`). Rotas `/dev` excluídas de produção.
+- CI executa separadamente a prova HTTP/SSE dos jogos Entre Nós e Na Mesma Onda, incluindo a entrada no catálogo.
 
-## Teste físico para fechar a entrega
+## Roteiro de teste físico
 
 1. Na mesma rede do computador, abrir a pré-visualização num iPhone e noutro aparelho; criar a sala e entrar pelo convite com nomes distintos.
 2. Confirmar 50 sem mover; noutra ronda arrastar até 0/100. Verificar extremos, valor e CTA em retrato e paisagem, sem scroll horizontal.
@@ -54,4 +47,4 @@ A primeira variável permite o jogo no registry do servidor; a segunda apresenta
 5. Completar seis rondas; repetir; confirmar mesmas identidades, zero pontuação anterior e novos temas.
 6. Verificar foco/teclado e VoiceOver: nome da escala, extremos, valor e feedback de confirmação. Com 3+ pessoas, conferir empates e classificação individual.
 
-Só após recolher estas evidências, corrigir eventuais problemas e fechar o PR se deve marcar Ludi-ready e preparar a publicação. Participantes fixos e controlo exclusivo do criador são limites deliberados do MVP.
+Confirmação física recebida nesta tarefa; publicação sucede à aprovação da CI e integração do PR. Participantes fixos e controlo exclusivo do criador são limites deliberados do MVP.

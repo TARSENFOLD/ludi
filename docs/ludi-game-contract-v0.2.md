@@ -3,7 +3,7 @@
 Estado: contrato implementado nesta branch; teste físico da migração no iPhone confirmado pelo utilizador em 10 out 2026. PR pronto para revisão.
 Data: 10 outubro 2026. Doot é a fundação confirmada. Os nomes `@doot-games/*` e o monorepo são preservados.
 
-## Extensão Na Mesma Onda (em validação)
+## Extensão Na Mesma Onda (Ludi-ready)
 
 A fronteira SDK passou a `LudiView<GameView>` e `LudiSession<View, Action>`, mantendo os envelopes comuns. `PublicRound`, payloads e schemas concretos vivem em `games/ludi/contracts` e nos adapters de ronda; o SDK não enumera Spectrum. Os adapters serializam conteúdo, resposta própria e revelação por allowlist. `poll/guess` mantêm os formatos HTTP anteriores.
 
@@ -11,7 +11,7 @@ A fronteira SDK passou a `LudiView<GameView>` e `LudiSession<View, Action>`, man
 
 Na Mesma Onda acrescenta ação de resposta `{id,match,round,type:"answer",value}` (inteiro 0–100), descritor `range`, conteúdo `spectrum` com extremos, `ownValue` e revelação com `mean/marks`. `duoScore` só aparece após revelar uma ronda de duas pessoas. Os payloads são definidos na camada de jogos. Posições reveladas são ordenadas numericamente, sem IDs nem ordem de submissão; em dupla a outra posição é dedutível. Scores individuais continuam internos e nos resultados filtrados, mas a UI da dupla só mostra a métrica comum.
 
-A revanche preserva as mesmas identidades e roster, limpa inputs/scores e sorteia seis temas novos, excluindo os últimos 18. Conteúdo e histórico curto vivem apenas na sala. Esta expansão é **preview**, não Ludi-ready, até teste físico. Ver [evidências e procedimento](na-mesma-onda-validation.md).
+A revanche preserva as mesmas identidades e roster, limpa inputs/scores e sorteia seis temas novos, excluindo os últimos 18. Conteúdo e histórico curto vivem apenas na sala. Teste físico confirmado pelo utilizador em 10 outubro 2026; expansão **Ludi-ready**, habilitada no catálogo e registry. Ver [evidências e procedimento](na-mesma-onda-validation.md).
 
 ## Quatro checkpoints
 

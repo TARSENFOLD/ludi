@@ -60,7 +60,6 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      ludiOndaPreview: process.env.LUDI_ONDA_PREVIEW === '1',
       ludiPublicOnly: process.env.LUDI_PUBLIC_ONLY === '1',
       relayUrl: process.env.CLASP_RELAY_URL || 'wss://relay.clasp.to',
       baseUrl: process.env.PUBLIC_BASE_URL || '',

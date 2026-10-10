@@ -51,10 +51,10 @@ describe('Na Mesma Onda: existing Spectrum rules and original content', () => {
     expect(r.parseAnswer({ ...base, value: 0 })?.input).toEqual({ value: 0 });
     expect(r.parseAnswer({ ...base, value: 100 })?.input).toEqual({ value: 100 });
   });
-  it('keeps pending physical validation out of public discovery, but allows preview filters', () => {
-    expect(discoverGames({}).some(g => g.id === 'na-mesma-onda')).toBe(false);
-    expect(discoverGames({ mode: 'room', players: 6, minutes: 6, vibe: 'thinking' }, true).map(g => g.id)).toEqual(['na-mesma-onda']);
-    expect(discoverGames({ mode: 'solo', players: 1 }, true).map(g => g.id)).not.toContain('na-mesma-onda');
-    expect(discoverGames({ mode: 'room', players: 6, minutes: 5 }, true)).toEqual([]);
+  it('discovers the validated room game only for compatible filters', () => {
+    expect(discoverGames({}).some(g => g.id === 'na-mesma-onda')).toBe(true);
+    expect(discoverGames({ mode: 'room', players: 6, minutes: 6, vibe: 'thinking' }).map(g => g.id)).toEqual(['na-mesma-onda']);
+    expect(discoverGames({ mode: 'solo', players: 1 }).map(g => g.id)).not.toContain('na-mesma-onda');
+    expect(discoverGames({ mode: 'room', players: 6, minutes: 5 })).toEqual([]);
   });
 });

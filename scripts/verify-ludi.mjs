@@ -45,8 +45,6 @@ const child = spawn(process.execPath, ["apps/web/.output/server/index.mjs"], {
     NITRO_PORT: String(port),
     LUDI_PUBLIC_ORIGIN: base,
     LUDI_PUBLIC_ONLY: "1",
-    LUDI_ONDA_PREVIEW: testOnda ? "1" : "0",
-    NUXT_PUBLIC_LUDI_ONDA_PREVIEW: testOnda ? "true" : "false",
     NUXT_PUBLIC_LUDI_PUBLIC_ONLY: "true",
   },
   stdio: ["ignore", "pipe", "pipe"],
@@ -221,9 +219,9 @@ try {
     }
     console.log('Na Mesma Onda HTTP/SSE: 2/3/6 independent sessions, six rounds, privacy, identity, reload, strict actions and idempotent replay passed.');
   } else {
-    assert.equal((await fetch(`${base}/ludi/na-mesma-onda`)).status, 404);
-    assert(!catalogue.includes('Estão na mesma onda?'));
-    assert.equal((await client().request('', { name: 'Teste', id: id(), gameId: 'na-mesma-onda' })).status, 400);
+    assert.equal((await fetch(`${base}/ludi/na-mesma-onda`)).status, 200);
+    assert(catalogue.includes('Na Mesma Onda'));
+    assert(catalogue.includes('/ludi/na-mesma-onda'));
 
   const creator = client();
   const guest = client();

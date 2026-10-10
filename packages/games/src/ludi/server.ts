@@ -17,8 +17,8 @@ const roomGames = new Map<string, (env: RuleEnvironment) => GameDefinition>([
   ['entre-nos', () => ({ ...entreNosDefinition, rounds: [...entreNosDefinition.rounds] })],
   ['na-mesma-onda', createOndaDefinition],
 ]);
-export function createRoomDefinition(id: string, environment: RuleEnvironment, allowPreview = false): GameDefinition {
+export function createRoomDefinition(id: string, environment: RuleEnvironment): GameDefinition {
   const factory = roomGames.get(id);
-  if (!factory || (id === 'na-mesma-onda' && !allowPreview)) throw new LudiError(400, 'Jogo indisponível.');
+  if (!factory) throw new LudiError(400, 'Jogo indisponível.');
   return factory(environment);
 }
