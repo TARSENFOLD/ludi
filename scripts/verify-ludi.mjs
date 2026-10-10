@@ -128,8 +128,10 @@ try {
   assert.equal(rootResponse.status, 302);
   assert.equal(rootResponse.headers.get("location"), "/ludi");
   const catalogue = await (await fetch(`${base}/ludi`)).text();
-  assert(catalogue.includes("Quem está por aí?"));
-  assert(!catalogue.includes("Explorar o catálogo Doot"));
+  assert.match(catalogue, /Quem está(?:<[^>]+>|\s)+por aí\?/);
+  assert(!catalogue.includes("Catálogo Doot (legado)"));
+  assert(!catalogue.includes("family=Baloo"));
+  assert.equal((await fetch(`${base}/ludi/icon.svg`)).status, 200);
   for (const path of ["/api/auth/sign-up/email", "/api/admin/users", "/mcp", "/api/games", "/api/uploads/presign", "/login"]) {
     for (const method of ["GET", "POST"]) {
       const blocked = await fetch(`${base}${path}`, { method });

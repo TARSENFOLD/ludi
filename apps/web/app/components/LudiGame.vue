@@ -26,6 +26,7 @@ onMounted(() => {
   }
 })
 onUnmounted(() => { unsubscribe?.(); resizeControls?.disconnect(); props.session.disconnect() })
+const connectionMessage = computed(() => props.connection?.state === 'reconnecting' && view.value?.ownChoice === undefined ? 'A restabelecer a ligação. Mantém esta página aberta.' : props.connection?.message)
 const currentAction = computed(() => props.connection?.state === 'ended' ? undefined : view.value?.actions[0])
 const me = computed(() => view.value?.players.find((p) => p.id === view.value?.context.participantId))
 const socialRounds = computed(() => view.value?.history?.filter(round => round.reveal.counts) ?? [])
@@ -33,13 +34,14 @@ const inTune = computed(() => socialRounds.value.filter(round => round.reveal.co
 const announcement = computed(() => {
   const v = view.value
   if (!v) return ''
+  if (props.connection?.state === 'ended') return 'Esta sala terminou.'
   if (v.phase === 'results') return 'Partida concluída. Pontuação disponível.'
   if (v.reveal) return 'Resultado revelado.'
   if (v.roundState === 'locked') return 'Todos responderam.'
   if (v.ownChoice !== undefined) return 'Resposta confirmada.'
   return ''
 })
-const stageKey = computed(() => view.value ? `${view.value.match}-${view.value.round}-${view.value.phase}-${view.value.handoff?.name ?? ''}` : '')
+const stageKey = computed(() => view.value ? `${props.connection?.state === 'ended' ? 'ended' : 'live'}-${view.value.match}-${view.value.round}-${view.value.phase}-${view.value.handoff?.name ?? ''}` : '')
 watch(stageKey, async (_, previous) => {
   if (!previous) return
   await nextTick()
@@ -77,11 +79,16 @@ async function act() {
   <main v-if="view" class="ludi-page ludi-game" :style="{ '--l-controls-height': `${controlsHeight}px` }">
     <LudiHeader :context="me ? `${view.title} · ${me.name}` : view.title" />
     <p class="sr-only" role="status" aria-live="polite">{{ announcement }}</p>
-    <p v-if="connection?.message" role="status" class="ludi-notice">{{ connection.message }}</p>
-    <div class="ludi-game-layout" :class="{ 'is-lobby': view.phase === 'lobby' && view.code }">
+    <p v-if="connectionMessage && connection?.state !== 'ended'" role="status" class="ludi-notice">{{ connectionMessage }}</p>
+    <div class="ludi-game-layout" :class="{ 'is-lobby': view.phase === 'lobby' && view.code && connection?.state !== 'ended' }">
       <section :key="stageKey" class="ludi-question ludi-stage-enter" :class="{ 'is-answering': currentAction?.type === 'answer', 'is-handoff': !!view.handoff }">
-        <LudiProgress v-if="view.phase === 'active'" :round="view.round" :total="view.totalRounds" />
-        <template v-if="view.phase === 'lobby'">
+        <LudiProgress v-if="view.phase === 'active' && connection?.state !== 'ended'" :round="view.round" :total="view.totalRounds" />
+        <template v-if="connection?.state === 'ended'">
+          <p class="ludi-eyebrow">Ligação terminada</p>
+          <h1 ref="heading" tabindex="-1">Esta sala terminou.</h1>
+          <p class="ludi-lead">{{ connectionMessage }}</p>
+        </template>
+        <template v-else-if="view.phase === 'lobby'">
           <LudiGameMark :game="view.gameId" />
           <p class="ludi-eyebrow">{{ view.title }}</p>
           <h1 ref="heading" tabindex="-1">{{ view.context.mode === 'room' ? (view.players.length === 2 ? 'A dupla está pronta.' : 'Falta a outra metade.') : 'Prontos para o desafio?' }}</h1>
@@ -138,7 +145,7 @@ async function act() {
         </details>
         <NuxtLink v-if="view.phase === 'results'" class="ludi-text-button ludi-other-games" to="/ludi">Escolher outro jogo</NuxtLink>
       </section>
-      <LudiRoomInfo v-if="view.code" :code="view.code" :players="view.players" :me="view.context.participantId" :lobby="view.phase === 'lobby'" />
+      <LudiRoomInfo v-if="view.code && connection?.state !== 'ended'" :code="view.code" :players="view.players" :me="view.context.participantId" :lobby="view.phase === 'lobby'" />
     </div>
     <footer ref="controls" class="ludi-controls" :aria-busy="busy">
       <div class="ludi-controls-inner">

@@ -9,8 +9,8 @@ Uma pequena pausa que apetece partilhar. Forma reconhecível, texto direto e res
 | Área | Decisão |
 | --- | --- |
 | Tipografia | Figtree, sistema como fallback; 400/600/700/800. Display 40–64, pergunta 28–40, título 24–32, corpo 16–18, auxiliar 14, etiqueta 12. Uma família, headings compactos, corpo 1.5. |
-| Spacing | 4, 8, 12, 16, 24, 32, 48, 64. Gutter 20 px no telemóvel, 32 px amplo. |
-| Radius | 8 para detalhes, 12 para campos/opções/botões, 24 apenas nas duas peças do catálogo; círculo para avatar. |
+| Spacing | Base de 4 px: 4, 8, 12, 16, 20, 24, 32, 48, 64. Gutter 20 px no telemóvel, 32 px amplo. |
+| Radius | 8 para detalhes, 12 para campos/opções/botões, 24 apenas nas duas peças do catálogo; círculo para avatar; pill apenas no seletor de modo. |
 | Cor | Papel #FAF9F6; tinta #24382E; texto secundário #59675E; verde de ação #254E3B; amarelo #F2D45C como assinatura; lavanda #E8E0F2 para Entre Nós; verde suave #DDECE1 para quiz. |
 | Superfícies | Página plana, superfície branca para inputs/respostas, fundo por jogo no catálogo, confirmação verde clara. Sem gradiente, grain ou glass. |
 | Elevation | Zero na maioria; sombra curta apenas no controlo fixo quando necessário para separação. |

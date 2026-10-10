@@ -13,7 +13,7 @@ const filtered = computed(() => !!mode.value || extraFilters.value > 0)
 const games = computed(() => discoverGames({ mode: mode.value || undefined, players: Number(players.value) || undefined, minutes: Number(minutes.value) || undefined, vibe: vibe.value || undefined }))
 const modes: { value: LudiMode | ''; label: string }[] = [
   { value: '', label: 'Todos' }, { value: 'solo', label: 'A solo' },
-  { value: 'same-device', label: 'Mesmo aparelho' }, { value: 'room', label: 'À distância' },
+  { value: 'same-device', label: 'À mesa' }, { value: 'room', label: 'Online' },
 ]
 const labels = { solo: 'Jogar a solo', 'same-device': 'Passar o aparelho', room: 'Jogar a dois' }
 function reset() { mode.value = ''; players.value = 0; minutes.value = 0; vibe.value = '' }
@@ -25,13 +25,13 @@ function reset() { mode.value = ''; players.value = 0; minutes.value = 0; vibe.v
       <section class="ludi-intro" aria-labelledby="discovery-title">
         <p class="ludi-eyebrow">Pequenos jogos. Bons momentos.</p>
         <h1 id="discovery-title">Quem está<br>por aí?</h1>
-        <p class="ludi-lead">Só tu, a mesa toda ou alguém do outro lado. Há sempre tempo para jogar.</p>
+        <p class="ludi-lead">A solo ou em boa companhia. Há sempre tempo para jogar.</p>
       </section>
       <form class="ludi-discovery-controls" aria-label="Encontrar um jogo" @submit.prevent>
         <fieldset class="ludi-mode-picker">
           <legend class="sr-only">Modo de jogo</legend>
           <label v-for="item in modes" :key="item.value" :class="{ selected: mode === item.value }">
-            <input v-model="mode" type="radio" name="mode" :value="item.value">
+            <input v-model="mode" type="radio" name="mode" :value="item.value" :aria-label="item.value === 'same-device' ? 'À mesa — no mesmo aparelho' : item.value === 'room' ? 'Online — um aparelho por pessoa' : item.label">
             <span>{{ item.label }}</span>
           </label>
         </fieldset>
