@@ -213,3 +213,33 @@ body[data-ludi]::after { content: none; }
 .ludi-history section { border-top: 1px solid var(--l-line); padding-block: 20px; }
 .ludi-history h2 { font-size: 18px; }
 .ludi-history p { margin-bottom: 8px; }
+
+/* Reveal/results use only the already-filtered public view. */
+.ludi-reveal { border-top: 1px solid var(--l-line); padding-top: 24px; }
+.ludi-reveal-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.ludi-reveal-heading h2 { margin: 0; }
+.ludi-reveal-symbol { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--l-quiz); font-size: 20px; }
+.ludi-point-gain { margin-left: auto; background: var(--l-action); color: white; font-size: 13px; font-weight: 700; border-radius: 8px; padding: 4px 8px; }
+.ludi-correct-answer { font-size: clamp(24px, 4vw, 32px); font-weight: 800; line-height: 1.25; letter-spacing: -.025em; padding: 20px 24px; border-radius: var(--l-radius); background: var(--l-success); overflow-wrap: anywhere; }
+.ludi-votes { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 20px; }
+.ludi-vote-label { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.ludi-vote-label > span { overflow-wrap: anywhere; }
+.ludi-vote-label strong { font-variant-numeric: tabular-nums; }
+.ludi-you { display: inline-block; font-size: 11px; line-height: 1.5; font-weight: 700; border: 1px solid #9aaa9a; border-radius: 4px; padding: 0 4px; vertical-align: middle; white-space: nowrap; }
+.ludi-vote-track { height: 8px; background: #e0e5dd; border-radius: 4px; overflow: hidden; }
+.ludi-vote-track > span { display: block; height: 100%; background: var(--l-action); border-radius: inherit; }
+.ludi-scoreboard { margin-top: 32px; }
+.ludi-score-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.ludi-score-heading h2 { font-size: 16px; font-weight: 700; margin: 0; }
+.ludi-scoreboard .ludi-scores { margin: 8px 0 0; }
+.ludi-scoreboard .ludi-scores li { justify-content: flex-start; }
+.ludi-score-name { flex: 1; font-weight: 600; min-width: 0; }
+.ludi-score-value { display: flex; gap: 6px; align-items: baseline; flex-shrink: 0; }
+.ludi-score-value strong { font-size: 24px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.ludi-score-value small { color: var(--l-muted); font-size: 12px; }
+.ludi-scoreboard.is-final .ludi-scores { margin-top: 16px; }
+.ludi-scoreboard.is-final .leader .ludi-avatar { background: var(--l-yellow); }
+.ludi-scoreboard.is-final .ludi-score-value strong { font-size: 36px; }
+.ludi-result-mark { color: var(--l-action); font-size: 64px; line-height: 1; margin-bottom: 24px; }
+.ludi-social-summary { display: inline-block; background: var(--l-social); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.ludi-other-games { margin-top: 16px; }

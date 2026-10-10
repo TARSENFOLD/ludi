@@ -1,0 +1,29 @@
+<script setup lang="ts">
+import type { LudiMode, PublicRound, RoundReveal } from '@doot-games/sdk/ludi'
+const props = defineProps<{ content: PublicRound; reveal: RoundReveal; ownChoice?: number; mode: LudiMode }>()
+const correct = computed(() => props.reveal.correctIndex !== undefined)
+const personal = computed(() => props.mode !== 'same-device')
+const right = computed(() => props.ownChoice === props.reveal.correctIndex)
+const total = computed(() => props.reveal.counts?.reduce((sum, value) => sum + value, 0) || 1)
+const together = computed(() => props.reveal.counts?.filter(n => n > 0).length === 1)
+</script>
+<template>
+  <div class="ludi-reveal" :class="{ 'is-correct': correct && personal && right }">
+    <template v-if="correct">
+      <div class="ludi-reveal-heading"><span class="ludi-reveal-symbol" aria-hidden="true">{{ personal && right ? '✓' : '↗' }}</span><h2>{{ personal && right ? 'Acertaste!' : 'A resposta certa.' }}</h2><span v-if="personal && right" class="ludi-point-gain">+1 ponto</span></div>
+      <p class="ludi-correct-answer">{{ reveal.correctLabel }}</p>
+      <p v-if="personal && !right && ownChoice !== undefined" class="ludi-small">Escolheste {{ content.options[ownChoice] }}. A próxima é outra oportunidade.</p>
+      <p v-else-if="!personal" class="ludi-small">Um ponto para quem acertou. Vejam a pontuação abaixo.</p>
+    </template>
+    <template v-else>
+      <div class="ludi-reveal-heading"><h2>{{ together ? 'Em sintonia!' : 'Escolhas divididas.' }}</h2></div>
+      <p class="ludi-small">{{ together ? 'Desta vez, foram pelo mesmo caminho.' : 'Duas escolhas. Já têm assunto para conversar.' }}</p>
+      <ul class="ludi-votes" aria-label="Escolhas da ronda">
+        <li v-for="(option, i) in content.options" :key="i">
+          <div class="ludi-vote-label"><span>{{ option }} <small v-if="ownChoice === i" class="ludi-you">Tu</small></span><strong>{{ reveal.counts?.[i] ?? 0 }}<span class="sr-only"> {{ reveal.counts?.[i] === 1 ? 'pessoa' : 'pessoas' }}</span></strong></div>
+          <div class="ludi-vote-track" aria-hidden="true"><span :style="{ width: `${(reveal.counts?.[i] ?? 0) / total * 100}%` }" /></div>
+        </li>
+      </ul>
+    </template>
+  </div>
+</template>

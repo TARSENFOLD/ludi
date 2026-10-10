@@ -28,7 +28,17 @@ onMounted(() => {
 onUnmounted(() => { unsubscribe?.(); resizeControls?.disconnect(); props.session.disconnect() })
 const currentAction = computed(() => props.connection?.state === 'ended' ? undefined : view.value?.actions[0])
 const me = computed(() => view.value?.players.find((p) => p.id === view.value?.context.participantId))
-const answerRevealed = computed(() => view.value?.reveal?.correctIndex !== undefined)
+const socialRounds = computed(() => view.value?.history?.filter(round => round.reveal.counts) ?? [])
+const inTune = computed(() => socialRounds.value.filter(round => round.reveal.counts?.filter(n => n > 0).length === 1).length)
+const announcement = computed(() => {
+  const v = view.value
+  if (!v) return ''
+  if (v.phase === 'results') return 'Partida concluída. Pontuação disponível.'
+  if (v.reveal) return 'Resultado revelado.'
+  if (v.roundState === 'locked') return 'Todos responderam.'
+  if (v.ownChoice !== undefined) return 'Resposta confirmada.'
+  return ''
+})
 const stageKey = computed(() => view.value ? `${view.value.match}-${view.value.round}-${view.value.phase}-${view.value.handoff?.name ?? ''}` : '')
 watch(stageKey, async (_, previous) => {
   if (!previous) return
@@ -66,6 +76,7 @@ async function act() {
 <template>
   <main v-if="view" class="ludi-page ludi-game" :style="{ '--l-controls-height': `${controlsHeight}px` }">
     <LudiHeader :context="me ? `${view.title} · ${me.name}` : view.title" />
+    <p class="sr-only" role="status" aria-live="polite">{{ announcement }}</p>
     <p v-if="connection?.message" role="status" class="ludi-notice">{{ connection.message }}</p>
     <div class="ludi-game-layout" :class="{ 'is-lobby': view.phase === 'lobby' && view.code }">
       <section :key="stageKey" class="ludi-question ludi-stage-enter" :class="{ 'is-answering': currentAction?.type === 'answer', 'is-handoff': !!view.handoff }">
@@ -101,16 +112,7 @@ async function act() {
               <span class="ludi-option-check" aria-hidden="true">{{ choice === index ? '✓' : '' }}</span>
             </label>
           </fieldset>
-          <div v-else-if="view.reveal" class="ludi-reveal">
-            <template v-if="answerRevealed">
-              <h2>{{ view.ownChoice === view.reveal.correctIndex ? 'Acertaste!' : 'A resposta certa…' }}</h2>
-              <p>{{ view.reveal.correctLabel }}</p>
-            </template>
-            <template v-else>
-              <h2>{{ view.reveal.counts?.filter((n) => n > 0).length === 1 ? 'Em sintonia!' : 'Escolhas divididas' }}</h2>
-              <p v-for="(option, i) in view.content.options" :key="i">{{ option }} <strong>{{ view.reveal.counts?.[i] ?? 0 }}</strong></p>
-            </template>
-          </div>
+          <LudiReveal v-else-if="view.reveal" :content="view.content" :reveal="view.reveal" :own-choice="view.ownChoice" :mode="view.context.mode" />
           <div v-else class="ludi-confirmed">
             <span class="ludi-confirmed-check" aria-hidden="true">✓</span>
             <div><h2>{{ view.roundState === 'locked' ? 'Todos responderam!' : 'Resposta confirmada.' }}</h2>
@@ -121,18 +123,20 @@ async function act() {
           </div>
         </template>
         <template v-else-if="view.phase === 'results'">
-          <p class="ludi-eyebrow">Partida concluída</p><h1 ref="heading" tabindex="-1">Mais uma?</h1>
-          <p>{{ view.title === 'Entre Nós' ? 'As escolhas dão conversa. Os desafios dão pontos.' : 'Um ponto por cada resposta certa.' }}</p>
+          <div class="ludi-result-mark" aria-hidden="true">✳</div>
+          <p class="ludi-eyebrow">{{ view.totalRounds }} rondas · partida concluída</p>
+          <h1 ref="heading" tabindex="-1">Valeu a pausa.</h1>
+          <p class="ludi-lead">{{ view.gameId === 'entre-nos' ? 'As escolhas dão conversa. Os desafios dão pontos.' : 'Cinco perguntas depois, há sempre espaço para mais uma.' }}</p>
+          <p v-if="socialRounds.length" class="ludi-social-summary"><strong>{{ inTune }} de {{ socialRounds.length }}</strong> escolhas em sintonia.</p>
         </template>
-        <ol v-if="view.scores" class="ludi-scores" aria-label="Pontuação">
-          <li v-for="player in view.scores" :key="player.id"><span>{{ player.name }}</span><strong>{{ player.score }} {{ player.score === 1 ? 'ponto' : 'pontos' }}</strong></li>
-        </ol>
+        <LudiScores v-if="view.scores && (view.content?.kind !== 'poll' || view.phase === 'results')" :scores="view.scores" :me="view.context.mode === 'same-device' ? undefined : view.context.participantId" :final="view.phase === 'results'" />
         <details v-if="view.history" class="ludi-history"><summary>Rever as rondas</summary>
-          <section v-for="(round, i) in view.history" :key="i"><h2>{{ round.prompt }}</h2>
+          <section v-for="(round, i) in view.history" :key="i"><p class="ludi-eyebrow">Ronda {{ i + 1 }}</p><h2>{{ round.prompt }}</h2>
             <p v-if="round.reveal.correctLabel">{{ round.reveal.correctLabel }}</p>
             <p v-for="(n, j) in round.reveal.counts" :key="j">{{ round.options[j] }} · {{ n }}</p>
           </section>
         </details>
+        <NuxtLink v-if="view.phase === 'results'" class="ludi-text-button ludi-other-games" to="/ludi">Escolher outro jogo</NuxtLink>
       </section>
       <LudiRoomInfo v-if="view.code" :code="view.code" :players="view.players" :me="view.context.participantId" :lobby="view.phase === 'lobby'" />
     </div>
