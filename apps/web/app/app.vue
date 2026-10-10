@@ -5,8 +5,20 @@ import { DootLogo, SiteFooter, ThemeProvider } from '@doot-games/ui'
 const theme = useState('doot-theme', () => 'doot')
 const route = useRoute()
 const publicLudi = useRuntimeConfig().public.ludiPublicOnly
+const ludiSurface = computed(() => publicLudi || route.path === '/duo' || route.path.startsWith('/ludi') || route.path.startsWith('/dev/ludi'))
+useHead(() => ({
+  bodyAttrs: { 'data-ludi': ludiSurface.value ? '' : undefined },
+  link: [
+    { key: 'icon', rel: 'icon', type: 'image/svg+xml', href: ludiSurface.value ? '/ludi/icon.svg' : '/favicon.svg' },
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    { key: 'product-fonts', rel: 'stylesheet', href: ludiSurface.value
+      ? 'https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap'
+      : 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Figtree:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Creepster&family=Nosifer&family=Special+Elite&family=VT323&display=swap' },
+  ],
+}))
 const chrome = computed(
-  () => !route.path.startsWith('/host/') && !route.path.startsWith('/play/') && !route.path.startsWith('/watch/') && !route.path.startsWith('/duo') && !route.path.startsWith('/ludi'),
+  () => !route.path.startsWith('/dev/ludi') && !route.path.startsWith('/host/') && !route.path.startsWith('/play/') && !route.path.startsWith('/watch/') && !route.path.startsWith('/duo') && !route.path.startsWith('/ludi'),
 )
 
 // The account control (avatar + dropdown, or Log in / Sign up) lives in

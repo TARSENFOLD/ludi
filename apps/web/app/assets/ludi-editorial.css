@@ -1,0 +1,715 @@
+/* Discovery art direction. Match controls keep their proven hierarchy. */
+.ludi-editorial {
+  --l-paper: #f6f2e9;
+  --l-ink: #292723;
+  --l-muted: #625e56;
+  --l-line: #cbc5b9;
+  --l-action: #292723;
+  --l-yellow: #dafa78;
+  --l-editorial: "Fraunces", Georgia, serif;
+  padding: 22px max(24px, env(safe-area-inset-right)) 40px max(24px, env(safe-area-inset-left));
+}
+.ludi-editorial .ludi-top,
+.ludi-editorial .ludi-main {
+  max-width: 1200px;
+}
+.ludi-editorial .ludi-top {
+  border-bottom: 1px solid var(--l-ink);
+  padding-bottom: 18px;
+  margin-bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.ludi-editorial .ludi-brand {
+  font-size: 52px;
+  letter-spacing: -.085em;
+  width: fit-content;
+}
+.ludi-editorial .ludi-brand-dot {
+  width: 12px;
+  height: 12px;
+  background: #d26042;
+}
+.ludi-masthead-note {
+  font-size: 13px;
+  line-height: 1.2;
+  text-align: center;
+  font-weight: 600;
+}
+.ludi-masthead-link {
+  justify-self: end;
+  font-size: 14px;
+  text-decoration: none;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.ludi-masthead-link span {
+  font-size: 28px;
+}
+.ludi-editorial .ludi-intro {
+  position: relative;
+  padding: 40px 0 44px;
+  margin: 0;
+}
+.ludi-editorial .ludi-intro > .ludi-eyebrow {
+  font-size: 11px;
+  letter-spacing: .12em;
+  margin-bottom: 22px;
+}
+.ludi-editorial .ludi-intro h1 {
+  font-family: var(--l-editorial);
+  font-size: clamp(78px, 10.8vw, 152px);
+  font-weight: 700;
+  letter-spacing: -.065em;
+  line-height: 0.89;
+  margin: 0;
+  max-width: 80%;
+  text-wrap: nowrap;
+  overflow-wrap: normal;
+}
+.ludi-editorial .ludi-intro h1 em {
+  font-weight: 700;
+  padding-left: .62em;
+  color: #9c3e29;
+}
+.ludi-hero-seal {
+  position: absolute;
+  width: clamp(110px, 13vw, 174px);
+  top: 62px;
+  right: 6%;
+  color: #dafa78;
+  transform: rotate(12deg);
+}
+.ludi-hero-seal svg {
+  display: block;
+  width: 100%;
+}
+.ludi-hero-seal > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #292723;
+  font-size: 11px;
+  line-height: 1.15;
+  letter-spacing: .04em;
+}
+.ludi-hero-seal strong {
+  font: italic 700 clamp(29px, 3.2vw, 42px) / 1.15 var(--l-editorial);
+  letter-spacing: -.05em;
+}
+.ludi-hero-seal i {
+  font: normal 28px / 1 Figtree, sans-serif;
+}
+.ludi-hero-note {
+  position: absolute;
+  right: 0;
+  bottom: 40px;
+  max-width: 245px;
+}
+.ludi-note-line {
+  display: block;
+  width: 38px;
+  height: 2px;
+  background: var(--l-ink);
+  margin-bottom: 14px;
+}
+.ludi-hero-note p {
+  font-size: 20px;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+.ludi-hero-note .ludi-small {
+  font-size: 12px;
+  color: var(--l-muted);
+}
+.ludi-selection-heading {
+  border-top: 1px solid var(--l-ink);
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  scroll-margin-top: 20px;
+}
+.ludi-selection-heading h2 {
+  font: 700 27px / 1.2 var(--l-editorial);
+  letter-spacing: -.04em;
+}
+.ludi-selection-heading > span {
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+.ludi-editorial .ludi-discovery-controls {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 0 12px;
+}
+.ludi-editorial .ludi-mode-picker {
+  gap: 0;
+  border-bottom: 1px solid var(--l-line);
+  margin: 0;
+  flex-wrap: wrap;
+}
+.ludi-editorial .ludi-mode-picker label {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  font-size: 15px;
+  padding: 12px 18px;
+  min-height: 48px;
+  box-shadow: inset 0 -2px transparent;
+}
+.ludi-editorial .ludi-mode-picker label.selected {
+  color: var(--l-ink);
+  background: #e8e3d7;
+  box-shadow: inset 0 -2px var(--l-ink);
+}
+.ludi-editorial .ludi-filter-details {
+  border: 0;
+  margin: 0;
+  min-width: 200px;
+}
+.ludi-editorial .ludi-filter-details summary {
+  min-height: 48px;
+  padding: 12px 0;
+  justify-content: end;
+  gap: 18px;
+}
+.ludi-editorial .ludi-filter-details[open] {
+  flex: 1;
+  max-width: 540px;
+}
+.ludi-editorial .ludi-filters {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 12px;
+}
+.ludi-editorial .ludi-catalog-heading {
+  margin: 0 0 20px;
+}
+.ludi-editorial .ludi-catalog-heading p {
+  font-size: 12px;
+}
+.ludi-featured-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.ludi-catalog-system {
+  display: grid;
+  gap: 40px;
+}
+.ludi-standard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.ludi-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.ludi-section-title {
+  font: 700 32px / 1.2 var(--l-editorial) !important;
+  padding-top: 24px;
+  border-top: 1px solid var(--l-line);
+  margin-bottom: 24px !important;
+}
+.ludi-editorial .ludi-game-tile {
+  position: relative;
+  border-radius: 3px;
+  border: 0;
+  padding: 28px;
+  overflow: hidden;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+.ludi-editorial .ludi-game-tile.is-social {
+  background: #e9a186;
+  color: #452737;
+}
+.ludi-editorial .ludi-game-tile.is-quiz {
+  background: #334de4;
+  color: #fff8e8;
+}
+.ludi-editorial .ludi-game-tile.is-paper {
+  background: #e8e2d6;
+  color: #292723;
+}
+.ludi-featured-grid > .ludi-game-tile:nth-child(2) {
+  margin-top: 72px;
+}
+.ludi-editorial .ludi-tile-top {
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 10px;
+  margin-bottom: 24px;
+  opacity: 0.9;
+}
+.ludi-edition {
+  font-size: 11px;
+  letter-spacing: .13em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.ludi-cover-sign {
+  font-size: 26px;
+  line-height: 1;
+}
+.ludi-editorial .ludi-cover-copy .ludi-eyebrow {
+  font-size: 10px;
+  letter-spacing: .08em;
+  margin: 0 0 10px;
+}
+.ludi-editorial .ludi-game-tile h2 {
+  font: 700 clamp(48px, 5.8vw, 78px) / 0.95 var(--l-editorial);
+  letter-spacing: -.065em;
+  margin: 0;
+  max-width: 100%;
+}
+.ludi-editorial .is-quiz h2 {
+  max-width: 300px;
+  font-style: italic;
+}
+.ludi-cover-art {
+  width: 100%;
+  height: 290px;
+  display: block;
+  overflow: visible;
+  margin: 4px 0 8px;
+}
+.ludi-editorial .is-quiz .ludi-cover-art {
+  height: 260px;
+  margin-top: -4px;
+}
+.art-piece {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: translate 350ms ease, rotate 350ms ease;
+}
+.ludi-art-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 170px;
+  font: 700 72px / 1 var(--l-editorial);
+}
+.ludi-art-fallback span:nth-child(2) {
+  background: var(--l-ink);
+  color: var(--l-paper);
+  padding: 16px;
+  rotate: -10deg;
+}
+.ludi-editorial .ludi-tile-description {
+  max-width: 340px;
+  min-height: 0;
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+.ludi-editorial .ludi-tile-actions {
+  margin-top: auto;
+  border: 0;
+  display: grid;
+  gap: 8px;
+}
+.ludi-editorial .ludi-game-link {
+  background: #fff5de;
+  color: #452737;
+  border: 0;
+  border-radius: 2px;
+  padding: 14px 16px;
+  min-height: 68px;
+  gap: 12px;
+  transition: background 150ms, transform 150ms, box-shadow 150ms;
+}
+.ludi-editorial .is-quiz .ludi-game-link {
+  background: #ddfa79;
+  color: #17217f;
+}
+.ludi-editorial .is-quiz .ludi-game-link + .ludi-game-link {
+  background: transparent;
+  color: #fff8e8;
+  border: 1px solid #9dacf6;
+}
+.ludi-editorial .ludi-game-link strong {
+  font-size: 17px;
+}
+.ludi-editorial .ludi-game-link small {
+  color: inherit;
+  opacity: 0.85;
+  font-size: 12px;
+}
+.ludi-editorial .ludi-link-arrow {
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  font-size: 23px;
+  transition: transform 200ms;
+}
+.ludi-editorial .ludi-game-link:focus-visible {
+  outline-color: currentColor;
+  outline-offset: -5px;
+}
+.ludi-editorial .ludi-game-link:active {
+  transform: translateY(2px) scale(0.985);
+}
+.ludi-editorial .card-standard h2 {
+  font-size: 38px;
+}
+.ludi-editorial .card-standard {
+  padding: 22px;
+}
+.ludi-editorial .card-standard .ludi-cover-art {
+  height: 180px;
+}
+.ludi-editorial .card-standard .ludi-tile-top {
+  margin-bottom: 18px;
+}
+.ludi-editorial .card-standard .ludi-tile-description {
+  font-size: 14px;
+}
+.ludi-standard-grid > .card-standard {
+  height: 100%;
+}
+.ludi-editorial .card-compact {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px 18px;
+  align-content: start;
+}
+.ludi-editorial .card-compact .ludi-tile-top {
+  display: none;
+}
+.ludi-editorial .card-compact .ludi-cover-copy {
+  grid-column: 2;
+}
+.ludi-editorial .card-compact h2 {
+  font-size: 30px;
+}
+.ludi-editorial .card-compact .ludi-cover-art,
+.ludi-editorial .card-compact .ludi-art-fallback {
+  grid-column: 1;
+  grid-row: 1;
+  height: 64px;
+  min-height: 64px;
+  width: 64px;
+  margin: 0;
+  font-size: 24px;
+  gap: 0;
+}
+.ludi-editorial .card-compact .ludi-art-fallback span:not(:first-child) {
+  display: none;
+}
+.ludi-editorial .card-compact .ludi-tile-description {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  margin: 0;
+}
+.ludi-editorial .card-compact .ludi-tile-actions {
+  grid-column: 1 / -1;
+}
+.ludi-editorial-footer {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 28px;
+  align-items: end;
+  padding: 36px 0 8px;
+  border-top: 1px solid var(--l-ink);
+  margin-top: 64px;
+}
+.ludi-editorial-footer > span {
+  align-self: center;
+  font-size: 64px;
+  color: #9c3e29;
+}
+.ludi-editorial-footer p {
+  font: 700 clamp(34px, 5vw, 60px) / 1 var(--l-editorial);
+  letter-spacing: -.055em;
+  margin: 0;
+}
+.ludi-editorial-footer small {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ludi-editorial .ludi-empty {
+  border: 1px solid var(--l-line);
+  border-radius: 0;
+  background: transparent;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .ludi-editorial .ludi-game-tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 0 -6px #292723;
+  }
+  .ludi-game-tile:hover .art-piece-one,
+  .ludi-game-tile:focus-within .art-piece-one {
+    rotate: -5deg;
+    translate: -3px -5px;
+  }
+  .ludi-game-tile:hover .art-piece-two,
+  .ludi-game-tile:focus-within .art-piece-two {
+    rotate: 7deg;
+    translate: 4px -7px;
+  }
+  .ludi-editorial .ludi-game-link:hover .ludi-link-arrow {
+    transform: rotate(45deg);
+  }
+}
+@media (min-width: 1000px) {
+  .ludi-editorial .card-featured.is-social .ludi-cover-art {
+    height: 320px;
+    margin-top: 14px;
+  }
+  .ludi-editorial .card-featured.is-social .ludi-cover-copy {
+    padding-top: 8px;
+  }
+}
+@media (max-width: 1000px) {
+  .ludi-hero-note {
+    position: static;
+    max-width: none;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 26px;
+  }
+  .ludi-note-line {
+    width: 26px;
+    flex: 0 0 26px;
+    margin: 0;
+  }
+  .ludi-hero-note p {
+    font-size: 16px;
+    margin: 0;
+  }
+  .ludi-hero-note .ludi-small {
+    margin-left: auto;
+    max-width: 130px;
+  }
+  .ludi-hero-seal {
+    right: 2%;
+    top: 102px;
+  }
+  .ludi-featured-grid {
+    gap: 20px;
+    grid-template-columns: 1.1fr 1fr;
+  }
+  .ludi-standard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ludi-editorial .card-featured {
+    padding: 20px;
+  }
+  .ludi-cover-art {
+    height: 220px;
+  }
+  .ludi-editorial .is-quiz .ludi-cover-art {
+    height: 210px;
+  }
+  .ludi-editorial .card-featured h2 {
+    font-size: 54px;
+  }
+}
+@media (max-width: 660px) {
+  .ludi-editorial {
+    padding: max(12px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 28px
+      max(18px, env(safe-area-inset-left));
+  }
+  .ludi-editorial .ludi-top {
+    grid-template-columns: 1fr auto;
+    padding-bottom: 12px;
+    gap: 12px;
+  }
+  .ludi-editorial .ludi-brand {
+    font-size: 42px;
+    min-height: 44px;
+  }
+  .ludi-masthead-note {
+    text-align: right;
+    font-size: 12px;
+  }
+  .ludi-masthead-link {
+    display: none;
+  }
+  .ludi-editorial .ludi-intro {
+    padding: 24px 0;
+  }
+  .ludi-editorial .ludi-intro > .ludi-eyebrow {
+    font-size: 9px;
+    margin-bottom: 18px;
+  }
+  .ludi-editorial .ludi-intro h1 {
+    font-size: clamp(64px, 12.8vw, 85px);
+    max-width: 100%;
+  }
+  .ludi-editorial .ludi-intro h1 em {
+    padding-left: .24em;
+  }
+  .ludi-hero-seal {
+    width: clamp(74px, 18vw, 112px);
+    top: 108px;
+    right: 0;
+  }
+  .ludi-hero-seal > span {
+    font-size: 8px;
+  }
+  .ludi-hero-seal strong {
+    font-size: 25px;
+  }
+  .ludi-hero-seal i {
+    font-size: 20px;
+  }
+  .ludi-hero-note {
+    margin-top: 22px;
+    gap: 12px;
+  }
+  .ludi-hero-note p {
+    font-size: 15px;
+  }
+  .ludi-hero-note .ludi-small {
+    display: none;
+  }
+  .ludi-selection-heading {
+    padding-top: 14px;
+  }
+  .ludi-selection-heading h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .ludi-selection-heading > span {
+    display: none;
+  }
+  .ludi-editorial .ludi-discovery-controls {
+    display: block;
+    margin: 0;
+  }
+  .ludi-editorial .ludi-mode-picker {
+    width: fit-content;
+  }
+  .ludi-editorial .ludi-mode-picker label {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+  .ludi-editorial .ludi-filter-details {
+    min-width: 0;
+  }
+  .ludi-editorial .ludi-filter-details summary {
+    min-height: 44px;
+    justify-content: start;
+    padding: 10px 0;
+    font-size: 12px;
+  }
+  .ludi-editorial .ludi-filters {
+    grid-template-columns: 1fr;
+  }
+  .ludi-editorial .ludi-catalog-heading {
+    margin: 0 0 14px;
+  }
+  .ludi-featured-grid,
+  .ludi-standard-grid,
+  .ludi-compact-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .ludi-featured-grid > .ludi-game-tile:nth-child(2) {
+    margin-top: 0;
+  }
+  .ludi-editorial .card-featured {
+    padding: 20px;
+  }
+  .ludi-editorial .card-featured .ludi-tile-top {
+    margin-bottom: 18px;
+  }
+  .ludi-editorial .card-featured .ludi-cover-copy {
+    width: 57%;
+    min-height: 148px;
+    position: relative;
+    z-index: 1;
+  }
+  .ludi-editorial .card-featured h2 {
+    font-size: clamp(44px, 10vw, 60px);
+  }
+  .ludi-editorial .card-featured .ludi-cover-art {
+    position: absolute;
+    width: 46%;
+    height: 166px;
+    right: 8px;
+    top: 76px;
+    margin: 0;
+  }
+  .ludi-editorial .card-featured .ludi-tile-description {
+    font-size: 15px;
+    margin-bottom: 18px;
+  }
+  .ludi-editorial .card-featured .ludi-cover-copy .ludi-eyebrow {
+    font-size: 9px;
+  }
+  .ludi-editorial-footer {
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+  }
+  .ludi-editorial-footer > span {
+    font-size: 48px;
+  }
+  .ludi-editorial-footer small {
+    grid-column: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ludi-editorial *,
+  .ludi-editorial *::before,
+  .ludi-editorial *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Final mobile rhythm: art supports the first action rather than delaying it. */
+.ludi-editorial .ludi-cover-copy .ludi-eyebrow {
+  color: inherit;
+}
+.ludi-editorial .ludi-tile-actions {
+  padding-top: 0;
+}
+@media (max-width: 660px) {
+  .ludi-editorial .ludi-intro {
+    padding-block: 18px;
+  }
+  .ludi-editorial .ludi-intro h1 {
+    font-size: clamp(54px, 16.4vw, 85px);
+  }
+  .ludi-editorial .ludi-catalog-heading {
+    min-height: 28px;
+    margin-bottom: 10px;
+  }
+  .ludi-editorial .card-featured .ludi-cover-copy {
+    min-height: 132px;
+  }
+  .ludi-editorial .card-featured .ludi-tile-top {
+    margin-bottom: 12px;
+  }
+}
+@media (max-width: 360px) {
+  .ludi-editorial .ludi-mode-picker label {
+    font-size: 13px;
+    padding-inline: 10px;
+  }
+}
