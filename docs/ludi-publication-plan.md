@@ -1,10 +1,10 @@
-# Preparação da primeira publicação do Ludi
+# Publicação e operação do Ludi
 
-Estado em 10 out 2026: preparação para a VPS Hetzner existente, partilhada com PDC. Domínio aprovado: **ludi.usepdc.com**. O utilizador adiou a criação do DNS e a abertura pública. Base integrada: `954796d` (v0.2, PR #1). Este documento não representa um serviço publicado.
+Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Imagem em execução: `ludi:6a6d1df10d8661434ed013b53bb599b199d42fd2`.
 
 ## Infraestrutura existente verificada
 
-Inspeção apenas de leitura por SSH em 10 out 2026:
+Infraestrutura verificada por SSH em 10 out 2026:
 
 - Host x86-64, Docker e Docker Compose disponíveis.
 - Serviços atuais: `pdc-api`, `pdc-strapi`, `pdc-redis` e `pdc-traefik`.
@@ -12,7 +12,7 @@ Inspeção apenas de leitura por SSH em 10 out 2026:
 - Rede Docker atual: `pdc-prod_pdc-network`. Serviços PDC sob `/opt/pdc`.
 - Na inspeção, aproximadamente 2,2 GiB de RAM disponíveis e 14 GB de disco livres. São valores pontuais; não representam garantia de capacidade sob carga.
 
-Preparar um projeto Compose separado `ludi`, diretório `/opt/ludi` e nomes de routers/services exclusivos. Aproveitar o Traefik existente; não instalar outro proxy nas portas 80/443. Antes da publicação, definir a ligação de rede mínima necessária ao proxy e rever o isolamento dos restantes serviços. Fazer builds fora da VPS para evitar competir com PDC por memória. IP e detalhes de acesso ficam no contexto operacional privado, fora deste repositório público.
+Projeto Compose separado `ludi`, diretório `~/ludi` do utilizador de deploy (modo 700), com nomes de routers/services exclusivos. Usa o Traefik existente e a sua rede Docker; não publica portas da aplicação no host. A rede permite conectividade com os restantes contentores, pelo que não equivale a isolamento de rede total. O build é feito no GitHub Actions. IP, credenciais e detalhes de acesso ficam fora deste repositório público.
 
 ## Configuração necessária
 
@@ -25,10 +25,10 @@ Preparar um projeto Compose separado `ludi`, diretório `/opt/ludi` e nomes de r
 - Suportar streaming SSE em `/api/ludi/rooms/*/events`, sem buffering/cache e com timeout compatível com ligações prolongadas. O servidor emite heartbeat a cada 15 segundos.
 - Usar `/api/health` como liveness. Este endpoint não substitui a prova de criar, entrar, responder e reconectar numa sala.
 
-## Configuração preparada nesta branch
+## Configuração publicada
 
 - `docker/docker-compose.ludi.yml`: projeto separado, sem porta de aplicação publicada, ligação à rede do proxy, volume próprio, limite de 768 MiB/1 CPU, rotação de logs e labels exclusivas do Traefik. Estes limites são iniciais e precisam de validação com carga real.
-- `docker/ludi.env.example`: variáveis para `/opt/ludi/.env`, sem credenciais reais.
+- `docker/ludi.env.example`: variáveis para `~/ludi/.env`, sem credenciais reais.
 - `LUDI_PUBLIC_ONLY=1`: allowlist no servidor para páginas Ludi, assets e API de salas. `/` e convites antigos encaminham para Ludi. Contas/admin/MCP/uploads/APIs legadas recebem 404, incluindo pedidos diretos. O código legado continua disponível nas instalações sem este perfil.
 - `NUXT_PUBLIC_LUDI_PUBLIC_ONLY=true`: navegação/metadados públicos Ludi e sem inicialização da sessão de conta ou reporte ao endpoint legado. Configurar ambas as flags.
 - `LUDI_TRUSTED_PROXY_IP`: confiança apenas no IP exato da ligação direta do Traefik. Usa o último IP válido acrescentado a X-Forwarded-For; ignora headers enviados por ligações diretas não confiáveis. O mesmo IP é usado para limites HTTP e de criação de salas. Se o Traefik for recriado com outro IP, atualizar a variável e recriar apenas o serviço Ludi.
@@ -41,25 +41,24 @@ Preparar um projeto Compose separado `ludi`, diretório `/opt/ludi` e nomes de r
 4. **Proxy e limites.** O DNS inicial deve ficar sem proxy Cloudflare (DNS only), para Traefik receber diretamente o cliente. Ativar outro proxy requer rever a cadeia de confiança; não reutilizar um header externo sem validação. A rede partilhada permite conectividade entre contentores; apenas o peer Traefik explicitamente configurado é confiável para headers.
 5. **Dados legados.** O processo inicializa SQLite/autenticação mesmo que os jogos Ludi não usem contas. Definir armazenamento e política de acesso desse legado. Um volume para SQLite não torna as salas Ludi persistentes.
 
-## Provas antes de partilhar o endereço
+## Evidências da primeira publicação
 
-Verificação local desta preparação: 232 testes em 27 ficheiros passaram; typecheck de todos os pacotes e build Nuxt/Nitro passaram; Compose validado com `config --quiet`. A prova contra o build passou com o perfil público ativo: redirecionamento da raiz, ausência do link legado, bloqueio de APIs legadas em GET/POST, quatro rondas, SSE, retoma, replay e inspeção de 64 assets sem conteúdo das salas. HTTPS e streaming através do Traefik real continuam por validar após o DNS/publicação.
+- [Build verificado no GitHub Actions](https://github.com/TARSENFOLD/ludi/actions/runs/38028758874): 232 testes em 27 ficheiros, typecheck, build Nuxt/Nitro e prova HTTP/SSE/bundles. Foram inspecionados 64 assets sem conteúdo das salas.
+- A mesma execução construiu a imagem Docker e verificou arranque, healthcheck, catálogo, criação de sala e bloqueio da administração legada antes de exportar o artefacto.
+- Artefacto ZIP transferido diretamente para a VPS e verificado por SHA-256: `df17c3ff01f6301569bd2fb22268fa4df877f7e9bf24a9dd640a4fec35cc646d`.
+- DNS A `ludi` criado no Cloudflare em modo **DNS only**, TTL automático. Certificado emitido pelo resolver Let's Encrypt do Traefik; HTTPS validado sem ignorar erros de certificado.
+- Prova contra a origem pública: raiz/catálogo, APIs legadas bloqueadas em GET/POST, cookies HttpOnly/SameSite=Lax/**Secure**, origem inválida recusada, quatro rondas com duas sessões, visões filtradas, SSE real, retoma por snapshot, identidade, entrada concorrente, repetição idempotente e limite do corpo passaram.
+- Browser na origem pública: catálogo carregou e Desafio rápido solo foi concluído, cinco perguntas e cinco pontos. A validação local sem rede e o teste físico no iPhone da v0.2 estão registados na entrega anterior; não são apresentados como novos testes físicos da publicação.
 
-- Build e arranque no ambiente escolhido; healthcheck bem-sucedido.
-- Cookie anónimo `HttpOnly`, `SameSite=Lax` e `Secure` na origem pública HTTPS; pedidos de escrita de outra origem recusados.
-- Duas sessões independentes: quatro rondas de Entre Nós, filtragem de respostas/soluções, recarga dos dois participantes e repetição sem pontuação herdada.
-- SSE através do proxy real: atualizações entregues sem buffering e retoma após interrupção de rede.
-- Tentativa externa de criar conta/assumir administração bloqueada pelo perfil ou provisionamento definido.
-- Desafio rápido em solo e no mesmo aparelho; carregamento inicial público seguido de jogo sem rede.
-- Reinício controlado em sala de teste: mensagem explícita de sala terminada. Fazer esta prova antes de convidar utilizadores.
+- Reinício controlado apenas do Ludi: contentor voltou a saudável e sala anterior passou a responder HTTP 410 (tratado pela interface como sala terminada). Os quatro contentores PDC mantiveram-se saudáveis; não foram reiniciados.
 
-## Retomar a publicação
+## Atualizar ou recuperar o serviço
 
-1. Criar o registo A `ludi` na zona `usepdc.com` para o IP da VPS já identificado, DNS only. A edição foi adiada pelo utilizador. A sessão Wrangler local não tem scope de escrita DNS; o painel de browser não estava acessível ao agente.
-2. Rever/integrar esta branch e compilar uma imagem identificada pelo commit, fora da VPS: `docker build -f docker/Dockerfile -t ludi:<commit> .`. O build Docker inicial foi interrompido durante o download da base quando a publicação foi adiada; não é evidência de imagem validada.
-3. Transferir a imagem com `docker save`/`docker load`, sem substituir imagens PDC. Preparar `/opt/ludi` e copiar apenas o Compose Ludi. Criar `.env` com modo 600 e segredo aleatório; obter o IP atual do proxy com o comando indicado no exemplo.
-4. Validar com `docker compose --env-file /opt/ludi/.env -f /opt/ludi/docker-compose.ludi.yml config --quiet`. Não imprimir a configuração expandida porque contém o segredo.
-5. Arrancar apenas o projeto `ludi` com `up -d --wait`. Verificar certificado HTTPS e todas as provas acima. Verificar também os healthchecks PDC antes/depois.
-6. Em falha, parar/remover apenas o projeto Ludi, preservando o volume; manter a imagem anterior para rollback. Não usar comandos de limpeza global ou alterar a stack PDC.
+1. Integrar o código revisto e executar `gh workflow run ludi.yml --repo TARSENFOLD/ludi --ref main -f build_image=true`. Aguardar sucesso de **check e image**. O build não acontece na VPS.
+2. Obter o artefacto `ludi-image-<SHA completo>` dessa execução, verificar o digest do ZIP e extrair apenas `ludi-image.tar.gz`. Os artefactos do Actions expiram ao fim de sete dias; conservar a imagem atual e a anterior na VPS. Não guardar tokens ou URLs assinados no repositório/logs.
+3. Usar `docker load -i ~/ludi/ludi-image.tar.gz`. Atualizar apenas `LUDI_IMAGE` no `~/ludi/.env` (modo 600), preservando o segredo. Obter novamente o IP do peer Traefik se este tiver sido recriado.
+4. Validar com `docker compose --env-file ~/ludi/.env -f ~/ludi/docker-compose.ludi.yml config --quiet`. Não imprimir a configuração expandida porque contém o segredo.
+5. Executar `docker compose --env-file ~/ludi/.env -f ~/ludi/docker-compose.ludi.yml up -d --wait`. Verificar HTTPS, criação/entrada numa sala e SSE, além dos healthchecks PDC antes/depois.
+6. Em falha, restaurar o tag anterior em `LUDI_IMAGE` e repetir `up -d --wait`. Na primeira publicação, sem versão anterior, parar apenas o projeto Ludi. Preservar o volume. Não usar limpezas globais ou alterar a stack PDC.
 
-Reiniciar/atualizar Ludi invalida salas ativas nesta versão. O volume SQLite preserva apenas estado legado; não é backup das partidas. Não criar uma nova VPS ou conta de alojamento.
+Reiniciar/atualizar Ludi invalida salas ativas nesta versão. O volume SQLite preserva apenas estado legado; não é backup das partidas. As salas duram no máximo oito horas; esta entrega usa uma única instância e não tem persistência durável. Não criar uma nova VPS ou conta de alojamento.
