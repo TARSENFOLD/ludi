@@ -4,6 +4,7 @@ import type { LudiMode, LudiVibe } from '@doot-games/sdk/ludi'
 import '../../assets/ludi.css'
 useHead({ title: 'Ludi · Encontra o próximo momento', htmlAttrs: { lang: 'pt-PT' } })
 const mode = ref<LudiMode | ''>('')
+const publicLudi = useRuntimeConfig().public.ludiPublicOnly
 const players = ref(0)
 const minutes = ref(0)
 const vibe = ref<LudiVibe | ''>('')
@@ -31,7 +32,7 @@ function reset() { mode.value = ''; players.value = 0; minutes.value = 0; vibe.v
         </article>
       </div>
       <div v-else class="ludi-card"><h2>Ainda não temos um jogo para esta combinação.</h2><p>Experimenta mudar o modo, o tempo ou o número de pessoas.</p><button class="ludi-secondary" @click="reset">Limpar filtros</button></div>
-      <p class="ludi-small" style="margin-top:32px">Procuras os jogos originais? <NuxtLink to="/explore">Explorar o catálogo Doot (legado)</NuxtLink>.</p>
+      <p v-if="!publicLudi" class="ludi-small" style="margin-top:32px">Procuras os jogos originais? <NuxtLink to="/explore">Explorar o catálogo Doot (legado)</NuxtLink>.</p>
     </div>
   </main>
 </template>

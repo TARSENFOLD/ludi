@@ -6,6 +6,7 @@
  * never itself breaks the page. Auto-registered by Nuxt (.client.ts).
  */
 export default defineNuxtPlugin((nuxtApp) => {
+  if (useRuntimeConfig().public.ludiPublicOnly) return
   if (typeof window === 'undefined') return
 
   const seen = new Set<string>()

@@ -41,6 +41,8 @@ const child = spawn(process.execPath, ["apps/web/.output/server/index.mjs"], {
     NITRO_HOST: "127.0.0.1",
     NITRO_PORT: String(port),
     LUDI_PUBLIC_ORIGIN: base,
+    LUDI_PUBLIC_ONLY: "1",
+    NUXT_PUBLIC_LUDI_PUBLIC_ONLY: "true",
   },
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -122,6 +124,19 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   assert(ready, `Nitro did not start: ${serverLog}`);
+  const rootResponse = await fetch(base, { redirect: "manual" });
+  assert.equal(rootResponse.status, 302);
+  assert.equal(rootResponse.headers.get("location"), "/ludi");
+  const catalogue = await (await fetch(`${base}/ludi`)).text();
+  assert(catalogue.includes("Quem está por aí?"));
+  assert(!catalogue.includes("Explorar o catálogo Doot"));
+  for (const path of ["/api/auth/sign-up/email", "/api/admin/users", "/mcp", "/api/games", "/api/uploads/presign", "/login"]) {
+    for (const method of ["GET", "POST"]) {
+      const blocked = await fetch(`${base}${path}`, { method });
+      assert.equal(blocked.status, 404, `Public profile exposed ${method} ${path}`);
+    }
+  }
+  console.log("Public profile: root entry, catalogue and legacy API isolation passed.");
   const creator = client();
   const guest = client();
   const stranger = client();

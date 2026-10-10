@@ -1,0 +1,51 @@
+# Separate project; reuses the existing proxy without publishing an application port.
+name: ludi
+services:
+  app:
+    image: ${LUDI_IMAGE:?Set an immutable release image tag}
+    restart: unless-stopped
+    init: true
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 128
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      LUDI_PUBLIC_ONLY: '1'
+      NUXT_PUBLIC_LUDI_PUBLIC_ONLY: 'true'
+      LUDI_PUBLIC_ORIGIN: https://${LUDI_DOMAIN:?Set the public hostname}
+      PUBLIC_BASE_URL: https://${LUDI_DOMAIN}
+      NUXT_PUBLIC_BASE_URL: https://${LUDI_DOMAIN}
+      LUDI_TRUSTED_PROXY_IP: ${LUDI_TRUSTED_PROXY_IP:?Set the direct Traefik peer IP}
+      SESSION_PASSWORD: ${SESSION_PASSWORD:?Set a random session secret}
+      DATABASE_URL: file:/app/.data/ludi.sqlite
+      DOOT_BACKUP_DISABLED: '1'
+      DOOT_EPHEMERAL_LIFECYCLE_DISABLED: '1'
+    volumes:
+      - ludi-data:/app/.data
+    networks:
+      - proxy
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: ${LUDI_PROXY_NETWORK:?Set the existing proxy network}
+      traefik.http.routers.ludi.rule: Host(`${LUDI_DOMAIN}`)
+      traefik.http.routers.ludi.entrypoints: websecure
+      traefik.http.routers.ludi.tls.certresolver: letsencrypt
+      traefik.http.routers.ludi.service: ludi
+      traefik.http.services.ludi.loadbalancer.server.port: '3000'
+      traefik.http.services.ludi.loadbalancer.healthcheck.path: /api/health
+      traefik.http.services.ludi.loadbalancer.healthcheck.interval: 15s
+      traefik.http.services.ludi.loadbalancer.responseforwarding.flushinterval: '-1ms'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+networks:
+  proxy:
+    external: true
+    name: ${LUDI_PROXY_NETWORK}
+volumes:
+  ludi-data:
