@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SessionContext } from "@doot-games/sdk/ludi"
 /**
  * Phone reveal for a Poll: shows the player, on THEIR screen, what they picked and
  * where the room landed, so a player who can't see the big screen still gets the
@@ -12,7 +13,8 @@ const props = defineProps<{
   myInput?: PollInput | null
   reveal?: PollRevealSummary | null
 }>()
-const ludiDuo = inject<boolean>('ludiDuo', false)
+const sessionContext = inject<SessionContext | undefined>('ludiSession', undefined)
+const isPortuguese = sessionContext?.locale === 'pt-PT'
 
 const myChoice = computed(() => props.myInput?.choice ?? null)
 const myLabel = computed(() =>
@@ -32,21 +34,21 @@ const withCrowd = computed(
 <template>
   <div class="poll-reveal big" aria-live="polite">
     <template v-if="myChoice == null">
-      <h2>{{ ludiDuo ? 'Sem resposta' : 'No vote' }}</h2>
-      <p v-if="topLabel">{{ ludiDuo ? 'A sala escolheu' : 'The room went with' }} <b>{{ topLabel }}</b>.</p>
-      <p v-else>{{ ludiDuo ? 'Ninguém respondeu nesta ronda.' : 'No votes this round.' }}</p>
+      <h2>{{ isPortuguese ? 'Sem resposta' : 'No vote' }}</h2>
+      <p v-if="topLabel">{{ isPortuguese ? 'A sala escolheu' : 'The room went with' }} <b>{{ topLabel }}</b>.</p>
+      <p v-else>{{ isPortuguese ? 'Ninguém respondeu nesta ronda.' : 'No votes this round.' }}</p>
     </template>
     <template v-else-if="splitVote">
-      <h2>{{ ludiDuo ? 'Escolhas divididas' : 'Split vote' }}</h2>
-      <p>{{ ludiDuo ? 'Escolheste' : 'You picked' }} <b>{{ myLabel }}</b>. {{ ludiDuo ? 'A sala ficou dividida.' : 'The room was evenly split.' }}</p>
+      <h2>{{ isPortuguese ? 'Escolhas divididas' : 'Split vote' }}</h2>
+      <p>{{ isPortuguese ? 'Escolheste' : 'You picked' }} <b>{{ myLabel }}</b>. {{ isPortuguese ? 'A sala ficou dividida.' : 'The room was evenly split.' }}</p>
     </template>
     <template v-else-if="withCrowd">
-      <h2>{{ ludiDuo ? 'Em sintonia!' : 'With the crowd' }}</h2>
-      <p>{{ ludiDuo ? 'Vocês escolheram' : 'You and the room both went' }} <b>{{ myLabel }}</b>.</p>
+      <h2>{{ isPortuguese ? 'Em sintonia!' : 'With the crowd' }}</h2>
+      <p>{{ isPortuguese ? 'Vocês escolheram' : 'You and the room both went' }} <b>{{ myLabel }}</b>.</p>
     </template>
     <template v-else>
-      <h2>{{ ludiDuo ? 'Escolheste' : 'You picked' }} {{ myLabel }}</h2>
-      <p v-if="topLabel">{{ ludiDuo ? 'A sala preferiu' : 'The room leaned' }} <b>{{ topLabel }}</b>.</p>
+      <h2>{{ isPortuguese ? 'Escolheste' : 'You picked' }} {{ myLabel }}</h2>
+      <p v-if="topLabel">{{ isPortuguese ? 'A sala preferiu' : 'The room leaned' }} <b>{{ topLabel }}</b>.</p>
     </template>
   </div>
 </template>

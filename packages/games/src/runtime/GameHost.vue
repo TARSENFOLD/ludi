@@ -34,7 +34,6 @@ const props = defineProps<{ plugin: GamePlugin; sessionMode?: boolean; controlle
 // to the generic board otherwise. Mirrors how the shell honors components.Host.
 const ResultsView = computed(() => props.plugin.components?.Results ?? GameResults)
 const room = injectDootRoom()
-const ludiDuo = inject<boolean>('ludiDuo', false)
 
 // Optional host round-count picker (provided by HostRoom for pooled flagships).
 interface RoundConfig {
@@ -251,7 +250,7 @@ const answer = computed(() =>
 
 const joinUrl = computed(() => {
   const code = room.code.value
-  const path = `/play/${code}${ludiDuo ? '?ludi=1' : ''}`
+  const path = `/play/${code}`
   return typeof window === 'undefined' ? path : `${window.location.origin}${path}`
 })
 const roundTimer = computed(() =>

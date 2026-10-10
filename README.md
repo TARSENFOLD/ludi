@@ -2,7 +2,7 @@
 
 Jogos para partilhar momentos, a começar por **Entre Nós**: uma partida de quatro rondas para duas pessoas, em que cada uma responde e vê os resultados no próprio ecrã.
 
-Este repositório contém o primeiro protótipo técnico do Ludi, desenvolvido sobre o [Doot](https://github.com/virgilvox/doot-games). O criador da sala também joga no seu dispositivo e controla o avanço das rondas.
+A fundação v0.2 usa o [Doot](https://github.com/virgilvox/doot-games), com autoridade das salas no servidor. Inclui **Entre Nós** para duas pessoas em aparelhos separados e **Desafio rápido** a solo ou para 2–6 pessoas no mesmo aparelho. O catálogo Ludi está em `/ludi`.
 
 ## Executar localmente
 
@@ -14,30 +14,36 @@ mkdir -p .data
 corepack pnpm --filter @doot-games/web dev
 ```
 
-Abre [localhost:3000/duo](http://localhost:3000/duo), escreve o teu nome e cria uma sala. O convite permite à outra pessoa entrar. Para experimentar no mesmo computador, abre o convite numa segunda aba.
+Abre [localhost:3000/ludi](http://localhost:3000/ludi) e escolhe um jogo. `/duo` continua a criar salas de Entre Nós. Para simular duas pessoas no computador, usa **browsers ou perfis independentes**: abas do mesmo browser partilham a identidade anónima.
 
-Para dois dispositivos na mesma rede, inicia com `corepack pnpm --filter @doot-games/web dev --host 0.0.0.0` e abre `http://<IP-LAN>:3000/duo`. O convite usa o endereço aberto pelo criador. O fluxo requer ligação à Internet para o relay CLASP configurado no projeto.
+Para aparelhos na mesma rede, inicia com `corepack pnpm --filter @doot-games/web dev --host 0.0.0.0` e abre `http://<IP-LAN>:3000/duo`. O convite usa a origem aberta pelo criador. As salas Ludi usam HTTP/SSE neste servidor e não dependem do relay público. O quiz local funciona sem rede depois de carregar.
 
-## Estado do protótipo
+## Estado da v0.2
 
-- Criação, entrada, quatro rondas e resultados foram observados em duas sessões browser na mesma máquina.
-- Em 10 out 2026, o utilizador confirmou a partida completa e a reconexão do criador e do convidado, com um iPhone como convidado na rede local. As capturas mostram o fluxo até aos resultados no criador.
-- O teste de integração cobre runtimes separados, ocultação da resposta correta e pontuação.
-- Há ajustes de interface pendentes no criador: compactar o convite durante a partida e manter o avanço visível em paisagem. A evidência detalhada e os limites estão em [LUDI_SPIKE.md](LUDI_SPIKE.md).
-- Doot continua a ser uma base técnica em avaliação; os outros jogos do catálogo não estão automaticamente adaptados ao Ludi.
+- Doot é a fundação confirmada. Regras de `poll` e `guess` são partilhadas com os adapters legados.
+- Identidade anónima por cookie HttpOnly; nome apenas de apresentação. Recarregar no mesmo browser recupera a participação e a resposta confirmada.
+- Soluções e respostas privadas das salas ficam no servidor. HTTP e SSE usam a mesma visão filtrada, incluindo para o criador.
+- Salas efémeras: uma instância, memória, máximo de oito horas. Reiniciar o servidor termina-as. Não executar várias instâncias atrás de balanceamento nesta versão.
+- Partidas locais reiniciam ao recarregar. Cinco perguntas em português, sem temporizador.
+- Testes automatizados, typecheck, build e provas HTTP/SSE documentados. **O utilizador confirmou que o teste da v0.2 no iPhone passou em 10 out 2026**; evidência e limites constam no registo de validação.
+- Os restantes jogos Doot continuam disponíveis como legado. Não são automaticamente experiências Ludi adaptadas.
 
 ## Verificar
 
 ```bash
-corepack pnpm exec vitest run packages/games/src/runtime/duo.integration.test.ts packages/games/src/catalog.test.ts
-corepack pnpm --filter @doot-games/web typecheck
+corepack pnpm exec vitest run packages/games/src/ludi packages/games/src/runtime packages/games/src/catalog.test.ts packages/engine/src/state-machine.test.ts apps/web/server/utils/ludi-rooms.test.ts apps/web/app/utils/ludi-session.test.ts
+corepack pnpm typecheck
+corepack pnpm --filter @doot-games/web build
+node scripts/verify-ludi.mjs
 ```
 
-O workflow **Verify Ludi** executa estas verificações. O workflow de deployment herdado está limitado ao repositório original do Doot.
+O workflow **Verify Ludi** executa estas verificações. O workflow de deployment herdado está limitado ao repositório original do Doot. A publicação do serviço é uma etapa posterior.
 
 ## Documentação e origem
 
-- [Spike, evidências e roteiro de teste](LUDI_SPIKE.md)
+- [Game Contract v0.2 e fronteiras da arquitetura](docs/ludi-game-contract-v0.2.md)
+- [Evidências e roteiro do teste físico v0.2](docs/ludi-v0.2-validation.md)
+- [Histórico do spike validado](LUDI_SPIKE.md)
 - [Auditoria dos jogos com fluxo próprio](CUSTOM_FLOW_AUDIT.md)
 - [Documentação original do Doot](README_DOOT.md)
 

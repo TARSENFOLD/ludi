@@ -52,7 +52,6 @@ export * from './blocks/scoring'
 
 // Games (block compositions). One export per registered game; folders match ids.
 export { guess } from './games/guess'
-export { entreNos } from './games/entre-nos'
 export { rate } from './games/rate'
 export { poll } from './games/poll'
 export { rank } from './games/rank'

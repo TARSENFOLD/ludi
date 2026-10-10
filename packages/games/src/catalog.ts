@@ -26,7 +26,6 @@ export interface GameCatalogEntry {
 }
 
 export const gameCatalog: GameCatalogEntry[] = [
-  { id: 'entre-nos', name: 'Entre Nós', version: '0.1.0', flagship: false, description: 'Quatro rondas para descobrir, conversar e rir a dois.' },
   { id: 'guess', name: 'Guess', version: '0.2.0', flagship: false, description: 'Multiple-choice rounds with a right answer, scored on a leaderboard.' },
   { id: 'rate', name: 'Rate', version: '0.2.0', flagship: false, description: 'Score subjects on flexible scales: numbers, grades, or tiers.' },
   { id: 'poll', name: 'Poll', version: '0.1.0', flagship: false, description: 'Opinion questions with no right answer; show the live results.' },
