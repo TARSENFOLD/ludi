@@ -5,7 +5,7 @@ const width = computed(() => Math.max(320, Math.min(1440, Number(route.query.wid
 const height = computed(() => Math.max(320, Math.min(1000, Number(route.query.height) || 844)))
 const source = computed(() => {
   const path = String(route.query.screen || '/ludi')
-  return /^\/(ludi|duo|dev\/ludi-state)([/?]|$)/.test(path) ? path : '/ludi'
+  return /^\/(ludi|duo|dev\/ludi-(?:state|catalog))([/?]|$)/.test(path) ? path : '/ludi'
 })
 </script>
 <template>
