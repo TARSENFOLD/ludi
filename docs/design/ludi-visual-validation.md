@@ -26,6 +26,15 @@
 - Parâmetros: `guest=1`, `mode=solo`, `mode=same-device`, `players=6`.
 - Rotas `/dev/*` excluídas do build de produção pelo mecanismo já existente. Fixtures não importam conteúdo privado das salas.
 
+## Verificação técnica
+
+- 232 testes em 27 ficheiros passaram; typecheck de todos os pacotes passou.
+- Build Nuxt/Nitro passou. Prova de privacidade em 65 assets passou.
+- Prova HTTP/SSE contra o build: cookies, origem, quatro rondas, identidade, reconexão, replay, concorrência, filtragem e limites passaram; favicon Ludi servido e fonte Baloo ausente do carregamento público.
+- CodeRabbit CLI: 20 ficheiros revistos, zero apontamentos. Isto é independente do bot GitHub, que ignora PRs em rascunho.
+- Contraste calculado dos pares reais: corpo/papel 11,87:1; secundário/papel 5,66:1; botão 9,41:1; texto/lavanda 9,75:1; texto/verde suave 10,21:1; erro 6,32:1.
+- A API de controlo do browser perdeu a ligação durante a matriz final. Verificações que leram DOM antes da hidratação foram descartadas; o ficheiro de fixtures contém uma marca explícita de prontidão para retomar. Falta finalizar essa matriz e repetir o fluxo completo no browser novo; não se confundem testes HTTP com testes visuais.
+
 ## Limites
 
 Dimensões de iframe testam layout, media queries e overflow. Não simulam notch real, teclado do Safari ou uma rotação física. O teste no iPhone da entrega anterior não valida automaticamente esta alteração visual. Não houve troca automática do modelo principal durante a execução; não se atribuem ajustes ou QA a um modelo que não os tenha executado.

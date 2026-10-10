@@ -85,7 +85,7 @@ async function act() {
         <LudiProgress v-if="view.phase === 'active' && connection?.state !== 'ended'" :round="view.round" :total="view.totalRounds" />
         <template v-if="connection?.state === 'ended'">
           <p class="ludi-eyebrow">Ligação terminada</p>
-          <h1 ref="heading" tabindex="-1">Esta sala terminou.</h1>
+          <h1 ref="heading" tabindex="-1">Esta ligação terminou.</h1>
           <p class="ludi-lead">{{ connectionMessage }}</p>
         </template>
         <template v-else-if="view.phase === 'lobby'">
@@ -136,14 +136,14 @@ async function act() {
           <p class="ludi-lead">{{ view.gameId === 'entre-nos' ? 'As escolhas dão conversa. Os desafios dão pontos.' : 'Cinco perguntas depois, há sempre espaço para mais uma.' }}</p>
           <p v-if="socialRounds.length" class="ludi-social-summary"><strong>{{ inTune }} de {{ socialRounds.length }}</strong> escolhas em sintonia.</p>
         </template>
-        <LudiScores v-if="view.scores && (view.content?.kind !== 'poll' || view.phase === 'results')" :scores="view.scores" :me="view.context.mode === 'same-device' ? undefined : view.context.participantId" :final="view.phase === 'results'" />
-        <details v-if="view.history" class="ludi-history"><summary>Rever as rondas</summary>
+        <LudiScores v-if="connection?.state !== 'ended' && view.scores && (view.content?.kind !== 'poll' || view.phase === 'results')" :scores="view.scores" :me="view.context.mode === 'same-device' ? undefined : view.context.participantId" :final="view.phase === 'results'" />
+        <details v-if="view.history && connection?.state !== 'ended'" class="ludi-history"><summary>Rever as rondas</summary>
           <section v-for="(round, i) in view.history" :key="i"><p class="ludi-eyebrow">Ronda {{ i + 1 }}</p><h2>{{ round.prompt }}</h2>
             <p v-if="round.reveal.correctLabel">{{ round.reveal.correctLabel }}</p>
             <p v-for="(n, j) in round.reveal.counts" :key="j">{{ round.options[j] }} · {{ n }}</p>
           </section>
         </details>
-        <NuxtLink v-if="view.phase === 'results'" class="ludi-text-button ludi-other-games" to="/ludi">Escolher outro jogo</NuxtLink>
+        <NuxtLink v-if="view.phase === 'results' && connection?.state !== 'ended'" class="ludi-text-button ludi-other-games" to="/ludi">Escolher outro jogo</NuxtLink>
       </section>
       <LudiRoomInfo v-if="view.code && connection?.state !== 'ended'" :code="view.code" :players="view.players" :me="view.context.participantId" :lobby="view.phase === 'lobby'" />
     </div>

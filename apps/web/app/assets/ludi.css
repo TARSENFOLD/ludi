@@ -105,7 +105,7 @@ body[data-ludi]::after {
   outline: none;
 }
 .ludi-page :where(a, button, input, select, summary) {
-  scroll-margin-block: 24px 120px;
+  scroll-margin-block: 24px calc(var(--l-controls-height, 96px) + 24px);
 }
 .ludi-top {
   max-width: 1040px;
