@@ -66,6 +66,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      ludiPublicOnly: process.env.LUDI_PUBLIC_ONLY === '1',
       relayUrl: process.env.CLASP_RELAY_URL || 'wss://relay.clasp.to',
       baseUrl: process.env.PUBLIC_BASE_URL || '',
       // Origin of the self-hosted GoatCounter instance (e.g. https://stats.doot.games).

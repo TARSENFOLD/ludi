@@ -10,6 +10,7 @@ import {
   type H3Event,
 } from "h3";
 import { LudiError } from "@doot-games/games/ludi/controller";
+import { ludiClientIp } from './ludi-client-ip';
 
 const buckets = new Map<string, { count: number; until: number }>();
 let sweptAt = 0;
@@ -29,11 +30,14 @@ function limit(key: string, max: number) {
 export function checkLudiOrigin(origin: string | undefined, target: string) {
   if (!origin || origin !== target) throw new LudiError(403, "Origem do pedido não permitida.");
 }
+export function ludiRequestIp(event: H3Event) {
+  return ludiClientIp(getRequestIP(event), getRequestHeader(event, 'x-forwarded-for'), process.env.LUDI_TRUSTED_PROXY_IP);
+}
 export function ludiRequest(event: H3Event, write = false, creating = false) {
   setHeader(event, "Cache-Control", "no-store, private");
   setHeader(event, "Vary", "Cookie");
-  // Do not trust client-supplied forwarding headers for identity or rate limits.
-  const ip = getRequestIP(event) ?? "unknown";
+  // Forwarded headers are ignored unless the direct peer is our configured proxy.
+  const ip = ludiRequestIp(event);
   const origin =
     process.env.LUDI_PUBLIC_ORIGIN ||
     getRequestURL(event, { xForwardedHost: false, xForwardedProto: false }).origin;

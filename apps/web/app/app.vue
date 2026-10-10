@@ -4,19 +4,23 @@ import { DootLogo, SiteFooter, ThemeProvider } from '@doot-games/ui'
 
 const theme = useState('doot-theme', () => 'doot')
 const route = useRoute()
+const publicLudi = useRuntimeConfig().public.ludiPublicOnly
 const chrome = computed(
   () => !route.path.startsWith('/host/') && !route.path.startsWith('/play/') && !route.path.startsWith('/watch/') && !route.path.startsWith('/duo') && !route.path.startsWith('/ludi'),
 )
 
 // The account control (avatar + dropdown, or Log in / Sign up) lives in
 // <AccountMenu>; the shell only needs `loggedIn` to gate the Your Games / Saved nav.
-const session = authClient.useSession()
+const session = publicLudi ? ref(null) : authClient.useSession()
 const user = computed(() => session.value?.data?.user ?? null)
 const loggedIn = computed(() => !!user.value)
 
 // Site-wide OG/Twitter defaults (branded /og.png card, site name, summary_large_image).
 // Pages override with their own title/description/image (a game uses its cover).
-useDootSeo()
+if (publicLudi) {
+  useHead({ htmlAttrs: { lang: 'pt-PT' } })
+  useSeoMeta({ title: 'Ludi · Jogar cabe no teu dia', description: 'Microjogos para uma pausa a solo, no mesmo aparelho ou numa sala para dois.', ogSiteName: 'Ludi' })
+} else useDootSeo()
 </script>
 
 <template>
