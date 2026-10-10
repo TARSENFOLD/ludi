@@ -17,6 +17,13 @@
 - Em 320 × 667, o lobby com nome longo conservou o controlo principal no fundo e sem overflow horizontal. O conteúdo pode rolar; a reserva para o rodapé acompanha a sua altura.
 - Copy de convidado distingue todos responderam, resultado revelado e partida concluída. Nenhuma presença online é inferida do roster.
 - QA corrigiu “Resposta confirmada” numa ligação terminada e a promessa de resposta guardada durante reconexão antes de responder.
+- QA retomada após recuperar o browser: descoberta em 390 × 844, seleção do modo por setas, combinação solo + seis pessoas sem resultados e reposição dos filtros. O catálogo recuperou os dois jogos.
+- Quiz solo no build de produção: cinco perguntas, uma resposta errada, quatro pontos finais; repetição voltou à primeira ronda e o primeiro acerto marcou um ponto, sem transportar os quatro anteriores.
+- No mesmo aparelho: duas pessoas responderam à primeira pergunta; a passagem escondeu a escolha anterior e a revelação coletiva surgiu apenas depois da segunda resposta, com pontuações 1/0. A simulação completa de 2/6 participantes permanece coberta pelos testes de regras.
+- Sala real no build: criação, feedback de convite copiado e recarregamento do lobby preservando nome e identidade. As quatro rondas e reconexão de resposta confirmada foram verificadas pela prova HTTP/SSE.
+- Fixtures após hidratação: resultados com seis nomes em 320 × 667, foco no link final acima do rodapé, handoff em 844 × 390, revelação social do convidado em 390 × 844 e sessão terminada em 320 × 667. Resultados: largura útil/scroll 305/305 px, rodapé 75 px, reserva inferior 99 px.
+- Erro simulado de submissão após escolha por teclado: seleção preservada e botão disponível para tentar novamente.
+- A revisão final encontrou uma solução longa cortada inicialmente em paisagem. Pergunta e revelação passaram a duas colunas apenas nesse formato. Em 844 × 390, a solução termina em 230 px e o rodapé começa em 323 px; largura útil/scroll 829/829 px. A pontuação permanece abaixo, acessível por scroll.
 
 ## Ferramentas de revisão
 
@@ -33,7 +40,7 @@
 - Prova HTTP/SSE contra o build: cookies, origem, quatro rondas, identidade, reconexão, replay, concorrência, filtragem e limites passaram; favicon Ludi servido e fonte Baloo ausente do carregamento público.
 - CodeRabbit CLI: 20 ficheiros revistos, zero apontamentos. Isto é independente do bot GitHub, que ignora PRs em rascunho.
 - Contraste calculado dos pares reais: corpo/papel 11,87:1; secundário/papel 5,66:1; botão 9,41:1; texto/lavanda 9,75:1; texto/verde suave 10,21:1; erro 6,32:1.
-- A API de controlo do browser perdeu a ligação durante a matriz final. Verificações que leram DOM antes da hidratação foram descartadas; o ficheiro de fixtures contém uma marca explícita de prontidão para retomar. Falta finalizar essa matriz e repetir o fluxo completo no browser novo; não se confundem testes HTTP com testes visuais.
+- A interrupção do browser foi resolvida e a QA acima foi retomada. Leituras anteriores à hidratação foram descartadas; as fixtures usam uma marca explícita de prontidão. O fluxo solo foi percorrido no browser, enquanto os cenários completos de sala continuam comprovados separadamente por HTTP/SSE.
 
 ## Limites
 

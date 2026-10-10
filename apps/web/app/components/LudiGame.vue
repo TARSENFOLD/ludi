@@ -81,7 +81,7 @@ async function act() {
     <p class="sr-only" role="status" aria-live="polite">{{ announcement }}</p>
     <p v-if="connectionMessage && connection?.state !== 'ended'" role="status" class="ludi-notice">{{ connectionMessage }}</p>
     <div class="ludi-game-layout" :class="{ 'is-lobby': view.phase === 'lobby' && view.code && connection?.state !== 'ended' }">
-      <section :key="stageKey" class="ludi-question ludi-stage-enter" :class="{ 'is-answering': currentAction?.type === 'answer', 'is-handoff': !!view.handoff }">
+      <section :key="stageKey" class="ludi-question ludi-stage-enter" :class="{ 'is-answering': currentAction?.type === 'answer', 'is-revealing': view.phase === 'active' && !!view.reveal && connection?.state !== 'ended', 'is-handoff': !!view.handoff }">
         <LudiProgress v-if="view.phase === 'active' && connection?.state !== 'ended'" :round="view.round" :total="view.totalRounds" />
         <template v-if="connection?.state === 'ended'">
           <p class="ludi-eyebrow">Ligação terminada</p>

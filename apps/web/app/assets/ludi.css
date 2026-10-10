@@ -1203,15 +1203,29 @@ body[data-ludi]::after {
   .ludi-game-layout {
     gap: 20px;
   }
-  .ludi-question.is-answering {
+  .ludi-question.is-answering,
+  .ludi-question.is-revealing {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 16px 28px;
     align-items: start;
   }
-  .ludi-question.is-answering .ludi-progress {
+  .ludi-question.is-answering .ludi-progress,
+  .ludi-question.is-revealing .ludi-progress {
     grid-column: 1 / -1;
     margin-bottom: 0;
+  }
+  .ludi-question.is-revealing .ludi-reveal {
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+  }
+  .ludi-question.is-revealing .ludi-correct-answer {
+    font-size: 22px;
+    padding: 16px;
+  }
+  .ludi-question.is-revealing .ludi-scoreboard {
+    grid-column: 1 / -1;
   }
   .ludi-progress {
     margin-bottom: 16px;
