@@ -24,5 +24,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run packages/games/src/runtime/duo.integration.test.ts packages/games/src/catalog.test.ts
-      - run: pnpm --filter @doot-games/web typecheck
+      - run: pnpm exec vitest run packages/games/src/ludi packages/games/src/runtime packages/games/src/catalog.test.ts packages/engine/src/state-machine.test.ts apps/web/server/utils/ludi-rooms.test.ts apps/web/app/utils/ludi-session.test.ts
+      - run: pnpm typecheck
+      - run: pnpm --filter @doot-games/web build
+      - run: node scripts/verify-ludi.mjs

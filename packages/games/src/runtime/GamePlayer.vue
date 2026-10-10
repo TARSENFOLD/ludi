@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SessionContext } from "@doot-games/sdk/ludi"
 /**
  * Generic player surface for any block-composed game: waiting/lobby/results
  * states are shared; the open-round input delegates to the current block's
@@ -16,7 +17,8 @@ import { canSubmitInput, inputNeedsRebuild } from './submit'
 
 const props = defineProps<{ plugin: GamePlugin }>()
 const room = injectDootRoom()
-const ludiDuo = inject<boolean>('ludiDuo', false)
+const sessionContext = inject<SessionContext | undefined>('ludiSession', undefined)
+const isPortuguese = sessionContext?.locale === 'pt-PT'
 
 // A game may ship a custom results view (e.g. a chain game's "unspool"); fall back
 // to the generic board otherwise. Mirrors how the shell honors components.Player.
@@ -241,7 +243,7 @@ watch(state, (s, prev) => {
 // changes, so every stage transition is announced. Visually hidden: the sighted
 // player sees the same information in the swapped views.
 const stageStatus = computed(() => {
-  if (ludiDuo) {
+  if (isPortuguese) {
     if (!room.ready.value) return 'A entrar na sala.'
     if (room.phase.value === 'lobby') return 'Entraste. A aguardar o início.'
     if (room.phase.value === 'results') return 'Os resultados finais estão disponíveis.'
@@ -285,10 +287,10 @@ function reloadPage() {
       </button>
     </div>
 
-    <div v-if="!room.ready.value" class="big">{{ ludiDuo ? 'A entrar…' : 'Joining…' }}</div>
+    <div v-if="!room.ready.value" class="big">{{ isPortuguese ? 'A entrar…' : 'Joining…' }}</div>
 
     <div v-else-if="room.phase.value === 'lobby'" class="big">
-      <h2>{{ ludiDuo ? 'Já estás na sala!' : 'You are in!' }}</h2>
+      <h2>{{ isPortuguese ? 'Já estás na sala!' : 'You are in!' }}</h2>
       <div v-if="teams.length" class="team-pick">
         <p class="team-pick-label">{{ room.myTeam.value ? 'Your team' : 'Pick your team' }}</p>
         <div class="team-opts" role="group" aria-label="Pick your team">
@@ -310,7 +312,7 @@ function reloadPage() {
         <p><Icon name="mc" :size="15" /> You're the MC. Kick it off when everyone's in.</p>
         <button class="btn btn-primary btn-block" @click="room.sendControl('start')">Start game →</button>
       </template>
-      <p v-else>{{ ludiDuo ? 'A aguardar a outra pessoa. Mantém esta página aberta.' : 'Waiting for the host to start. Keep this page open.' }}</p>
+      <p v-else>{{ isPortuguese ? 'A aguardar a outra pessoa. Mantém esta página aberta.' : 'Waiting for the host to start. Keep this page open.' }}</p>
     </div>
 
     <template v-else-if="room.phase.value === 'results' && room.results.value">
@@ -325,7 +327,7 @@ function reloadPage() {
         :order="config?.settings?.resultsOrder ?? []"
         compact
       />
-      <a class="btn btn-ghost btn-block" :href="ludiDuo ? '/duo' : '/'">{{ ludiDuo ? 'Voltar ao Ludi' : 'Back to start' }}</a>
+      <a class="btn btn-ghost btn-block" :href="isPortuguese ? '/duo' : '/'">{{ isPortuguese ? 'Voltar ao Ludi' : 'Back to start' }}</a>
       <ReportButton
         class="results-report"
         :room-code="room.code.value"
@@ -369,14 +371,14 @@ function reloadPage() {
     </div>
 
     <div v-else-if="state === 'ready'" class="big">
-      <div v-if="playableTotal > 1" class="round-progress">{{ ludiDuo ? 'Ronda' : 'Round' }} {{ playableNumber }} {{ ludiDuo ? 'de' : 'of' }} {{ playableTotal }}</div>
+      <div v-if="playableTotal > 1" class="round-progress">{{ isPortuguese ? 'Ronda' : 'Round' }} {{ playableNumber }} {{ isPortuguese ? 'de' : 'of' }} {{ playableTotal }}</div>
       <h2>{{ prompt || block.name }}</h2>
-      <p>{{ ludiDuo ? 'A preparar a próxima pergunta…' : 'Get ready, this round opens in a moment.' }}</p>
+      <p>{{ isPortuguese ? 'A preparar a próxima pergunta…' : 'Get ready, this round opens in a moment.' }}</p>
     </div>
 
     <template v-else-if="state === 'open' && !submitted && value != null">
       <div class="kicker-row">
-        <div class="kicker">{{ ludiDuo ? (block.kind === 'poll' ? 'Escolha' : 'Desafio') : block.name }}<template v-if="playableTotal > 1"> · {{ ludiDuo ? 'Ronda' : 'Round' }} {{ playableNumber }} {{ ludiDuo ? 'de' : 'of' }} {{ playableTotal }}</template></div>
+        <div class="kicker">{{ isPortuguese ? (block.kind === 'poll' ? 'Escolha' : 'Desafio') : block.name }}<template v-if="playableTotal > 1"> · {{ isPortuguese ? 'Ronda' : 'Round' }} {{ playableNumber }} {{ isPortuguese ? 'de' : 'of' }} {{ playableTotal }}</template></div>
         <CountdownRing v-if="countdown" :remaining="countdown.remaining" :total="countdown.total" class="player-cd" />
       </div>
       <h2 class="prompt">{{ prompt }}</h2>
@@ -389,21 +391,21 @@ function reloadPage() {
         v-model="value"
       />
       <button class="btn btn-primary btn-block btn-lg" :disabled="!canSubmit" @click="submit">
-        {{ ludiDuo ? 'Confirmar resposta' : 'Lock it in' }}
+        {{ isPortuguese ? 'Confirmar resposta' : 'Lock it in' }}
       </button>
       <p v-if="hostAway" class="host-away" role="status">
-        {{ ludiDuo ? 'A ligação de quem criou a sala falhou. A tua resposta continua guardada.' : "The big screen isn't responding. Your answer is still saved." }}
+        {{ isPortuguese ? 'A ligação de quem criou a sala falhou. A tua resposta continua guardada.' : "The big screen isn't responding. Your answer is still saved." }}
       </p>
     </template>
 
     <div v-else-if="state === 'open' && submitted" class="big">
       <span class="lock-check" aria-hidden="true"></span>
-      <h2>{{ ludiDuo ? 'Resposta confirmada' : 'Locked in' }}</h2>
-      <p>{{ ludiDuo ? 'A aguardar a outra pessoa…' : 'Waiting for everyone else…' }}</p>
+      <h2>{{ isPortuguese ? 'Resposta confirmada' : 'Locked in' }}</h2>
+      <p>{{ isPortuguese ? 'A aguardar a outra pessoa…' : 'Waiting for everyone else…' }}</p>
     </div>
     <div v-else-if="state === 'locked'" class="big">
-      <h2>{{ ludiDuo ? 'Respostas fechadas' : 'Time!' }}</h2>
-      <p>{{ ludiDuo ? 'O resultado aparece já aqui.' : "That's locked in. Watch the big screen for what's next." }}</p>
+      <h2>{{ isPortuguese ? 'Respostas fechadas' : 'Time!' }}</h2>
+      <p>{{ isPortuguese ? 'O resultado aparece já aqui.' : "That's locked in. Watch the big screen for what's next." }}</p>
     </div>
     <component
       :is="block.PlayerReveal"
@@ -413,8 +415,8 @@ function reloadPage() {
       :reveal="room.roundRevealFor(index)"
     />
     <div v-else class="big">
-      <h2>{{ ludiDuo ? 'Resultado disponível!' : 'Results are up!' }}</h2>
-      <p>{{ ludiDuo ? 'Vê o que aconteceu nesta ronda.' : 'Check the big screen.' }}</p>
+      <h2>{{ isPortuguese ? 'Resultado disponível!' : 'Results are up!' }}</h2>
+      <p>{{ isPortuguese ? 'Vê o que aconteceu nesta ronda.' : 'Check the big screen.' }}</p>
     </div>
 
     <StandingsPeek
@@ -422,8 +424,8 @@ function reloadPage() {
       :results="standings"
       :me="room.me.value.name"
       :teams="teams"
-      :title="ludiDuo ? 'Pontuação até agora' : undefined"
-      :you-label="ludiDuo ? 'Tu' : undefined"
+      :title="isPortuguese ? 'Pontuação até agora' : undefined"
+      :you-label="isPortuguese ? 'Tu' : undefined"
       class="player-standings"
     />
   </div>

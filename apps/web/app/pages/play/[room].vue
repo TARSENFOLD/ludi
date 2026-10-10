@@ -4,7 +4,8 @@ import { DootLogo, JoinForm } from '@doot-games/ui'
 import { ref } from 'vue'
 
 const route = useRoute()
-const ludi = computed(() => route.query.ludi === '1')
+if (route.query.ludi === '1') await navigateTo(`/ludi/salas/${String(route.params.room).toUpperCase()}`, { replace: true })
+const ludi = computed(() => false)
 useHead({ title: ludi.value ? 'Ludi — entrar na sala' : 'Doot, put a game on the big screen' })
 const runtime = useRuntimeConfig()
 const roomCode = computed(() => String(route.params.room).toUpperCase())
@@ -96,7 +97,7 @@ async function probeName(
   <main class="play">
     <ClientOnly>
       <AudienceRoom v-if="watching" :room="roomCode" />
-      <PlayerRoom v-else-if="joined" :room="roomCode" :name="name" :device-first="ludi" />
+      <PlayerRoom v-else-if="joined" :room="roomCode" :name="name" />
       <div v-else class="gate">
         <div class="panel card">
           <NuxtLink v-if="ludi" to="/duo" class="ludi-brand">Ludi</NuxtLink>

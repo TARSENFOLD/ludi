@@ -1,5 +1,7 @@
 # Ludi: primeiro jogo em dois dispositivos
 
+> Registo histórico do spike v0.1. A implementação atual usa autoridade no servidor e identidade por cookie; consulta o [contrato v0.2](docs/ludi-game-contract-v0.2.md) e o [novo roteiro de validação](docs/ludi-v0.2-validation.md). As instruções de relay público e reconexão por nome abaixo aplicam-se apenas ao spike testado.
+
 Este diretório é uma cópia local do [Doot](https://github.com/virgilvox/doot-games), obtida no commit `0f78d6d11e7a7863cc9aa575ab2cfa39c5f6bd9b`. O código original mantém a licença MIT. As alterações do Ludi estão nesta cópia; o repositório upstream não foi alterado.
 
 ## Jogar localmente

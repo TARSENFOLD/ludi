@@ -38,8 +38,6 @@ const props = defineProps<{
   /** The saved game's id, present only when hosting a stored game (not a template).
    *  Used to record a play (durable historical stat) when the room actually starts. */
   gameId?: string
-  /** Ludi spike: the creator also joins as a player on this device. */
-  duoName?: string
 }>()
 const runtime = useRuntimeConfig()
 
@@ -54,14 +52,13 @@ const themeState = useState<string>('doot-theme', () => 'doot')
 // instead of stranding players on a regenerated code. The context is the game being
 // hosted, so opening a DIFFERENT game starts a fresh room (no inherited roster); a
 // refresh of THIS game resumes it. See useHostSession.
-const sessionContext = props.duoName ? `duo:p:${props.pluginId}` : props.gameId ? `g:${props.gameId}` : `p:${props.pluginId}`
+const sessionContext = props.gameId ? `g:${props.gameId}` : `p:${props.pluginId}`
 const { room: roomCode, token: hostToken, lobby: savedLobby } = useHostSession({ context: sessionContext })
 const relay = createClaspRelay(runtime.public.relayUrl as string, { name: 'doot-host' }, { assets: createEphemeralAssets(roomCode) })
 const room = useDootRoom({ relay, room: roomCode, role: 'host', hostToken, nameFilter: playerNameFilter })
 // Close the socket (and stop the reconnect supervisor) when this host unmounts.
 onScopeDispose(() => relay.close())
 provideDootRoom(room)
-provide('ludiDuo', !!props.duoName)
 // If the engine regenerates the code (a genuine collision on a fresh host), persist the
 // settled code so a later reload resumes the right room.
 watch(() => room.code.value, (c) => persistHostRoom(sessionContext, c))
@@ -106,15 +103,11 @@ provide('dootRoundConfig', roundConfig)
 
 // Optional soft player cap, set by the host from the lobby. Changing it republishes
 // meta so the join screen can turn away a new player once the room is at the cap.
-const playerCap = ref<number | null>(props.duoName ? 2 : null)
+const playerCap = ref<number | null>(null)
 provide('dootPlayerCap', playerCap)
 watch(playerCap, (cap) => {
   if (room.phase.value === 'lobby') room.host.setPlayerCap(cap)
 })
-if (props.duoName) watch(() => room.connected.value, (connected) => {
-  if (connected && room.phase.value === 'lobby') room.host.setPlayerCap(2)
-}, { immediate: true })
-
 // Optional "turn off timers" toggle, set from the lobby. Timers are on by default;
 // when off, every round's timer is nulled so nothing auto-locks and the host (or
 // the delegated driver) advances each round by hand.
@@ -265,47 +258,6 @@ watch(
 
 const HostView = plugin.components?.Host ?? GameHost
 const playerCount = computed(() => room.players.value.length)
-const duoController = ref<{ finish: () => void } | null>(null)
-const duoCopied = ref(false)
-const duoJoinUrl = computed(() => `${window.location.origin}/play/${room.code.value}?ludi=1`)
-const duoRoundTotal = computed(() => (room.config.value as { rounds?: unknown[] } | undefined)?.rounds?.length ?? 0)
-const duoLastRound = computed(() => room.round.value.index >= duoRoundTotal.value - 1)
-const duoAction = computed(() => {
-  if (room.phase.value === 'lobby') return 'Começar partida'
-  if (room.phase.value === 'results') return 'Jogar novamente'
-  switch (room.round.value.state) {
-    case 'ready': return 'Abrir respostas'
-    case 'open': return 'Fechar respostas'
-    case 'locked': return 'Mostrar resultado'
-    case 'reveal': return duoLastRound.value ? 'Ver resultados finais' : 'Próxima ronda'
-  }
-  return 'Continuar'
-})
-const duoActionEnabled = computed(() => {
-  if (room.phase.value === 'lobby') return playerCount.value >= 2 && room.host.can('start')
-  if (room.phase.value === 'results') return true
-  const state = room.round.value.state
-  return state === 'reveal' || room.host.can(state === 'ready' ? 'open' : state === 'open' ? 'lock' : 'reveal')
-})
-function duoAdvance() {
-  if (!duoActionEnabled.value) return
-  if (room.phase.value === 'lobby') return room.host.start()
-  if (room.phase.value === 'results') return playAgain()
-  switch (room.round.value.state) {
-    case 'ready': return room.host.openVoting()
-    case 'open': return room.host.lock()
-    case 'locked': return room.host.reveal()
-    case 'reveal': return duoLastRound.value ? duoController.value?.finish() : room.host.next()
-  }
-}
-async function copyDuoLink() {
-  try {
-    await navigator.clipboard.writeText(duoJoinUrl.value)
-    duoCopied.value = true
-    setTimeout(() => { duoCopied.value = false }, 2000)
-  } catch { /* the URL remains visible for manual copying */ }
-}
-
 // "New room": drop this tab's room and reload for a brand-new code + clean roster, so a
 // fresh GROUP joins from scratch. The unambiguous "new session" action — offered in the
 // lobby and on the results screen. (To replay with the SAME crowd, use Play again.)
@@ -327,40 +279,7 @@ function endGame() {
 </script>
 
 <template>
-  <div v-if="duoName" class="duo-room">
-    <header class="duo-bar">
-      <NuxtLink to="/duo" class="duo-brand">Ludi <span>· Entre Nós</span></NuxtLink>
-      <span class="duo-code">Sala <strong>{{ room.code.value }}</strong></span>
-    </header>
-    <div class="duo-grid" :class="{ 'in-lobby': room.phase.value === 'lobby' }">
-      <section class="duo-play" aria-label="A tua área de jogo">
-        <PlayerRoom v-if="room.connected.value" :key="`${room.code.value}:${duoName}`" :room="room.code.value" :name="duoName" device-first />
-        <p v-else class="duo-wait">A criar sala…</p>
-      </section>
-      <aside class="duo-control" aria-label="Controlos da partida">
-        <div class="duo-panel-head"><span class="duo-kicker">ENTRE NÓS</span><span>{{ playerCount }}/2 pessoas</span></div>
-        <h1>Uma sala para vocês.</h1>
-        <p class="duo-help">Convida a outra pessoa. Depois, responde no teu ecrã e avança a partida com o botão de controlo.</p>
-        <div class="duo-invite">
-          <span class="duo-label">Código da sala</span>
-          <strong class="duo-big-code">{{ room.code.value }}</strong>
-          <a :href="duoJoinUrl" class="duo-link">{{ duoJoinUrl }}</a>
-          <button type="button" class="duo-copy" @click="copyDuoLink">{{ duoCopied ? 'Link copiado' : 'Copiar convite' }}</button>
-        </div>
-        <div class="duo-roster">
-          <span class="duo-label">Na sala</span>
-          <ul><li v-for="person in room.players.value" :key="person.id">{{ person.name }}</li></ul>
-          <p v-if="playerCount < 2">A aguardar outra pessoa…</p>
-        </div>
-        <p v-if="room.phase.value === 'active'" class="duo-progress">Ronda {{ room.round.value.index + 1 }} de {{ duoRoundTotal }}</p>
-        <p v-if="room.phase.value === 'results'" class="duo-progress">Partida concluída 🎉</p>
-        <button type="button" class="duo-advance" :disabled="!duoActionEnabled" @click="duoAdvance">{{ duoAction }} <span aria-hidden="true">→</span></button>
-        <button v-if="room.phase.value !== 'active'" type="button" class="duo-new" @click="newRoom">Criar outra sala</button>
-      </aside>
-    </div>
-    <GameHost ref="duoController" :plugin="plugin" controller-only />
-  </div>
-  <Stage v-else>
+  <Stage>
     <template #bar>
       <NuxtLink to="/" class="home-link" aria-label="Doot home"><DootLogo :size="40" /></NuxtLink>
       <div class="bar-right">
@@ -386,36 +305,6 @@ function endGame() {
 </template>
 
 <style scoped>
-.duo-room { --primary: #244d35; --primary-ink: #fff; --ink: #20322b; --ink-soft: #5c6d61; --surface: #fff; --surface-2: #f2f6ed; min-height: 100dvh; background: #f6f4ee; color: var(--ink); }
-.duo-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; background: #212f2a; color: white; }
-.duo-brand { color: white; font-size: 22px; font-weight: 900; text-decoration: none; }
-.duo-brand span { font-size: 12px; font-weight: 600; opacity: .7; }
-.duo-code { font-size: 13px; }
-.duo-code strong { margin-left: 6px; letter-spacing: .15em; font-size: 18px; }
-.duo-grid { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 20px; align-items: start; max-width: 1020px; margin: auto; padding: 20px; }
-.duo-play, .duo-control { min-width: 0; }
-.duo-control { border: 1px solid #d5d7cd; border-radius: 20px; background: white; padding: 24px; box-shadow: 0 15px 50px #20322b12; }
-.duo-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; font-weight: 800; color: #647569; }
-.duo-kicker { letter-spacing: .15em; color: #c56040; }
-.duo-control h1 { margin: 18px 0 8px; font-size: clamp(26px, 3vw, 38px); letter-spacing: -.035em; line-height: 1.1; }
-.duo-help { margin: 0 0 20px; font-size: 14px; line-height: 1.5; color: #56675c; }
-.duo-invite { display: grid; gap: 8px; border: 1px solid #d3decf; border-radius: 16px; background: #f3f8f0; padding: 18px; }
-.duo-label { font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: #627668; }
-.duo-big-code { font-size: clamp(36px, 5vw, 58px); letter-spacing: .18em; line-height: 1.1; }
-.duo-link { color: #244d35; font-size: 12px; word-break: break-all; }
-.duo-copy, .duo-advance { border: 0; border-radius: 12px; padding: 13px 16px; background: #244d35; color: white; font: inherit; font-weight: 800; cursor: pointer; }
-.duo-copy { justify-self: start; padding: 10px 14px; font-size: 13px; }
-.duo-copy:focus-visible, .duo-advance:focus-visible, .duo-new:focus-visible { outline: 3px solid #e37850; outline-offset: 2px; }
-.duo-roster { margin: 20px 0; }
-.duo-roster ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 10px 0 0; }
-.duo-roster li { border-radius: 999px; padding: 7px 12px; background: #ebf3e8; font-size: 13px; font-weight: 800; }
-.duo-roster p { font-size: 13px; color: #66746a; }
-.duo-progress { font-size: 13px; font-weight: 800; color: #536d5d; }
-.duo-advance { width: 100%; display: flex; justify-content: space-between; margin-top: 14px; }
-.duo-advance:disabled { opacity: .5; cursor: not-allowed; }
-.duo-new { display: block; margin: 14px auto 0; padding: 8px; border: 0; background: none; color: #55685a; font: inherit; font-size: 12px; cursor: pointer; }
-.duo-wait { padding: 36px; text-align: center; }
-@media (max-width: 800px) { .duo-grid { display: flex; flex-direction: column; padding: 10px; gap: 12px; } .duo-grid.in-lobby .duo-control { order: -1; } .duo-play, .duo-control { width: 100%; } .duo-room { padding-bottom: 64px; } .duo-control { padding: 18px; } .duo-advance { position: fixed; z-index: 10; bottom: 10px; left: 10px; width: calc(100% - 20px); box-shadow: 0 8px 26px #20322b44; } }
 .home-link {
   display: inline-flex;
   align-items: center;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SessionContext } from "@doot-games/sdk/ludi"
 /**
  * Phone reveal for a Guess round: tells the player on THEIR screen whether they
  * were right, instead of only pointing at the big screen (the second-screen
@@ -12,7 +13,8 @@ const props = defineProps<{
   myInput?: GuessInput | null
   reveal?: { correctIndex: number; correctLabel: string; revealImage?: string } | null
 }>()
-const ludiDuo = inject<boolean>('ludiDuo', false)
+const sessionContext = inject<SessionContext | undefined>('ludiSession', undefined)
+const isPortuguese = sessionContext?.locale === 'pt-PT'
 
 const answered = computed(() => props.myInput?.choice != null)
 const correct = computed(
@@ -36,20 +38,20 @@ const answerImage = computed(() => {
   <div class="guess-reveal big" aria-live="polite">
     <template v-if="correct">
       <div class="badge ok" aria-hidden="true">&#10003;</div>
-      <h2>{{ ludiDuo ? 'Acertaste!' : 'Correct!' }}</h2>
-      <p>{{ ludiDuo ? 'Boa! A pontuação aparece aqui em baixo.' : 'Nice one. Check the big screen for the standings.' }}</p>
+      <h2>{{ isPortuguese ? 'Acertaste!' : 'Correct!' }}</h2>
+      <p>{{ isPortuguese ? 'Boa! A pontuação aparece aqui em baixo.' : 'Nice one. Check the big screen for the standings.' }}</p>
     </template>
     <template v-else-if="answered">
       <div class="badge no" aria-hidden="true">&#10007;</div>
-      <h2>{{ ludiDuo ? 'Quase!' : 'Not quite' }}</h2>
+      <h2>{{ isPortuguese ? 'Quase!' : 'Not quite' }}</h2>
       <img v-if="answerImage" class="answer-img" :src="answerImage" alt="" />
-      <p>{{ ludiDuo ? 'A resposta era' : 'The answer was' }} <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
+      <p>{{ isPortuguese ? 'A resposta era' : 'The answer was' }} <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
     </template>
     <template v-else>
       <div class="badge no" aria-hidden="true">&#8211;</div>
-      <h2>{{ ludiDuo ? 'Tempo esgotado!' : 'Time!' }}</h2>
+      <h2>{{ isPortuguese ? 'Tempo esgotado!' : 'Time!' }}</h2>
       <img v-if="answerImage" class="answer-img" :src="answerImage" alt="" />
-      <p>{{ ludiDuo ? 'A resposta era' : 'The answer was' }} <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
+      <p>{{ isPortuguese ? 'A resposta era' : 'The answer was' }} <b>{{ answerLabel }}</b><template v-if="answerSublabel"> ({{ answerSublabel }})</template>.</p>
     </template>
   </div>
 </template>

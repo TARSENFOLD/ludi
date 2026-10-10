@@ -8,7 +8,11 @@
   "exports": {
     ".": "./src/index.ts",
     "./catalog": "./src/catalog.ts",
-    "./markdown": "./src/markdown.ts"
+    "./markdown": "./src/markdown.ts",
+    "./ludi": "./src/ludi/catalog.ts",
+    "./ludi/local": "./src/ludi/local.ts",
+    "./ludi/server": "./src/ludi/server.ts",
+    "./ludi/controller": "./src/ludi/controller.ts"
   },
   "scripts": {
     "build": "vue-tsc -p tsconfig.json",
