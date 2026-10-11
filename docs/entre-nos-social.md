@@ -38,9 +38,9 @@ Estas regras prevalecem sobre os limites antigos e a ordem de ecrãs contraditó
 - Regressões HTTP/SSE: Entre Nós v0.2 e Na Mesma Onda 2/3/6 passaram. Desafio rápido local coberto na suite, incluindo 1/2/6 participantes.
 - 70 assets de cliente verificados sem os marcadores de conteúdo exclusivo do servidor, incluindo o novo banco.
 - Browser: criação, convite com sessão independente, perguntas de ambos, privacidade visível, recarregar para recuperar pergunta/identidade/resposta, teclado, confirmação, revelação e resumo de Quem Me Conhece? verificados.
-- Viewports por iframe real, pois o override do browser não alterou a dimensão: 390×844 e 844×390 sem overflow horizontal na revelação; CTA dentro do viewport. Preparação inspecionada em retrato. O controlo do browser não conseguiu acionar elementos dentro do iframe; o editor foi validado na página principal. Teclado móvel e rotação do editor permanecem no teste físico.
+- Viewports por iframe real, pois o override do browser não alterou a dimensão: 390×844 e 844×390 sem overflow horizontal na revelação; CTA dentro do viewport. Preparação inspecionada em retrato. O controlo do browser não conseguiu acionar elementos dentro do iframe; o editor foi validado na página principal. O utilizador confirmou depois que o teste físico desta evolução passou.
 - CodeRabbit CLI 0.7.6 reviu 31 ficheiros; uma observação menor sobre proteção contra duplo início, corrigida. Nenhum problema crítico/aviso reportado.
 
 ## Estado de entrega
 
-Implementação concluída na branch `feat/entre-nos-social`, pendente de aceitação física e publicação. A produção continua na release `2189d51` de Na Mesma Onda. O teste físico da versão anterior não valida esta evolução: editor com teclado móvel, previsão e retoma precisam de nova aceitação nos aparelhos. Não se reivindica teste VoiceOver real.
+Teste físico desta evolução aceite pelo utilizador em 11 outubro 2026: «funciona perfeitamente, pode publicar». PR #6 integrada em `88ef8a7753c6bd4a9781bbe94b04d15b86e7d590`. Não se reivindica teste VoiceOver real. A publicação e as provas na origem pública estão registadas em [operação do Ludi](./ludi-publication-plan.md).

@@ -1,6 +1,6 @@
 # Publicação e operação do Ludi
 
-Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Interface atual integrada no PR #4; Na Mesma Onda integrado no PR #5 e publicado em 11 out 2026. Imagem em execução: `ludi:2189d519c1e1294468d4c021cc03b02da7d843eb`.
+Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Interface atual integrada no PR #4; Na Mesma Onda integrado no PR #5 e publicado em 11 out 2026. Entre Nós social integrado no PR #6 e publicado em 11 out 2026. Imagem em execução: `ludi:88ef8a7753c6bd4a9781bbe94b04d15b86e7d590`.
 
 ## Infraestrutura existente verificada
 
@@ -68,6 +68,15 @@ Projeto Compose separado `ludi`, diretório `~/ludi` do utilizador de deploy (mo
 - Apenas Ludi foi recriado e ficou saudável. Imagem anterior `5696418032ac00a208338ce3e0a784ecc39dd9fe` conservada para rollback. Os quatro serviços PDC mantiveram os instantes de arranque e healthchecks.
 - HTTPS, catálogo público e bloqueio das APIs legadas verificados. Entre Nós passou quatro rondas; Na Mesma Onda passou seis rondas com 2 e 6 sessões independentes, retoma, privacidade HTTP/SSE, identidade, inputs e revanche idempotente. Cookies Secure/HttpOnly verificados.
 - O teste físico passou antes do deploy. Esta publicação não reivindica um novo teste físico nem QA visual automatizada.
+
+## Publicação de Entre Nós social — 11 out 2026
+
+- [PR #6](https://github.com/TARSENFOLD/ludi/pull/6) integrada em `88ef8a7753c6bd4a9781bbe94b04d15b86e7d590`, após o utilizador confirmar o teste físico desta evolução e autorizar a publicação.
+- [Release CI](https://github.com/TARSENFOLD/ludi/actions/runs/38170743111): check e image aprovados. ZIP verificado no VPS: SHA-256 `a52d1298e4617fd31e67c4e5db12ccd0b55accf6265ea9772e10aef806b5d18f`.
+- Apenas o serviço Ludi foi recriado; ficou saudável. Imagem anterior `2189d519c1e1294468d4c021cc03b02da7d843eb` conservada para rollback. Os quatro serviços PDC mantiveram os instantes de arranque e healthchecks.
+- HTTPS público: perfil público e bloqueio das APIs legadas passaram. Uma partida social com quatro sessões independentes percorreu preparação privada, ownership, congelamento, dez momentos, previsão por etapas, retoma, SSE filtrado e continuação idempotente. Cookies Secure/HttpOnly/SameSite=Lax verificados.
+- Browser público: entrada de Entre Nós e transição para criação da sala confirmadas. O teste físico passou antes da publicação; não se reivindica nova validação física após o deploy nem teste VoiceOver real.
+- Disponível em https://ludi.usepdc.com/ludi/entre-nos e no catálogo. Regras, conteúdo e limites em [Entre Nós social](./entre-nos-social.md).
 
 ## Atualizar ou recuperar o serviço
 
