@@ -1,4 +1,4 @@
-import type { LudiAction, LudiSession, LudiView } from "@doot-games/games/ludi/contracts";
+import type { LudiAction, LudiSession, LudiView, PreparationAction } from "@doot-games/games/ludi/contracts";
 
 export interface ConnectionState {
   state: "connected" | "reconnecting" | "ended";
@@ -97,10 +97,12 @@ export class RoomSession implements LudiSession {
   availableActions() {
     return this.closed ? [] : this.view.actions;
   }
-  async send(action: LudiAction) {
+  async send(action: LudiAction) { return this.post('actions', action); }
+  async prepare(action: PreparationAction) { return this.post('preparation', action); }
+  private async post(endpoint: 'actions' | 'preparation', action: LudiAction | PreparationAction) {
     if (this.closed) throw new Error("Esta ligação terminou. Cria uma nova sala.");
     const request = () =>
-      fetch(`/api/ludi/rooms/${this.view.code}/actions`, {
+      fetch(`/api/ludi/rooms/${this.view.code}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(action),

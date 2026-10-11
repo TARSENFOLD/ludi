@@ -1311,3 +1311,25 @@ body[data-ludi]::after {
     font-size: 44px;
   }
 }
+
+/* Social preparation extends the existing reading column and touch controls. */
+.ludi-preparation { --l-controls-height: 190px; }
+.ludi-preparation .ludi-options small, .ludi-own-questions small { display: block; font-weight: 400; margin-top: .45rem; }
+.ludi-custom-editor { display: grid; gap: 1rem; margin-block: 1.5rem; }
+.ludi-custom-editor fieldset { border: 0; padding: 0; min-width: 0; }
+.ludi-custom-editor textarea { width: 100%; padding: 1rem; border: 1px solid currentColor; border-radius: 12px; font: inherit; resize: vertical; background: var(--l-paper, #fffaf2); color: inherit; }
+.ludi-custom-option { display: grid; grid-template-columns: 48px minmax(0, 1fr) 44px; gap: .5rem; align-items: center; margin-block: .6rem; }
+.ludi-custom-option input[type=radio] { width: 24px; height: 24px; margin: 12px; accent-color: var(--l-ink, #223b31); }
+.ludi-custom-option input:not([type=radio]) { min-width: 0; width: 100%; }
+.ludi-inline-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem 1.5rem; }
+.ludi-inline-actions button { min-height: 44px; }
+.ludi-own-questions, .ludi-prep-progress { list-style: none; padding: 0; }
+.ludi-own-questions li { padding-block: 1rem; border-bottom: 1px solid var(--l-line, #c7cbbf); overflow-wrap: anywhere; }
+.ludi-prep-progress-title { margin-top: 2rem; }
+.ludi-prep-progress li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; padding-block: .7rem; border-bottom: 1px solid var(--l-line, #c7cbbf); }
+.ludi-prep-progress li > span { overflow-wrap: anywhere; min-width: 0; }
+.ludi-social-results { margin-block: 2rem; }
+.ludi-social-results dl > div { display: flex; justify-content: space-between; gap: 1rem; padding-block: 1rem; border-bottom: 1px solid var(--l-line, #c7cbbf); }
+.ludi-social-results dd { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.ludi-conversation { padding-block: 1.5rem; }
+@media (max-height: 520px) and (orientation: landscape) { .ludi-preparation { --l-controls-height: 150px; } .ludi-preparation .ludi-controls-inner { gap: .25rem; } }

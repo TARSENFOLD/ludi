@@ -16,9 +16,9 @@ export function presentLudiGame(game: LudiManifest): LudiCatalogEntry {
       game,
       level: "featured",
       tone: "social",
-      tagline: "Duas cabeças. Muitas histórias.",
+      tagline: "Há mais para descobrir.",
       art: "entre-nos",
-      links: { room: { href: "/duo", label: "Jogar a dois" } },
+      links: { room: { href: "/ludi/entre-nos", label: "Jogar juntos" } },
     };
   if (game.id === "desafio-rapido")
     return {

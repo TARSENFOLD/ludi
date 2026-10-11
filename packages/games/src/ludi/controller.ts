@@ -3,14 +3,17 @@ import {
   actionEnvelopeSchema, participantNameSchema,
   type LudiManifest, type LudiMode, type Participant, type RuleEnvironment, requireMode,
 } from "@doot-games/sdk/ludi";
-import type { LudiAction, LudiView, RoundReveal } from "./contracts";
+import type { LudiAction, LudiView, RoundReveal, RoundHistory, SocialSummary } from "./contracts";
 import type { LudiRound } from "./rounds";
 export { defineRounds } from "./rounds";
 export interface GameDefinition {
   manifest: LudiManifest;
   rounds: LudiRound[];
   /** Optional per-room content source; never shared between room instances. */
-  nextRounds?: () => LudiRound[];
+  nextRounds?: (reason?: 'replay' | 'continue') => LudiRound[];
+  canContinue?: () => boolean;
+  scoring?: boolean;
+  summarize?: (history: RoundHistory[]) => SocialSummary;
 }
 export class LudiError extends Error {
   constructor(
@@ -37,8 +40,10 @@ export class MatchController {
     private authority: RoundAuthority,
     private creator: string,
     environment: RuleEnvironment,
+    initialMatch = 1,
   ) {
     this.createdAt = environment.now();
+    this.match = initialMatch;
     if (!game.manifest.modes.some((m) => m.mode === mode))
       throw new LudiError(400, "Modo indisponível.");
   }
@@ -79,6 +84,12 @@ export class MatchController {
   private canControl(id: string) {
     return this.mode !== "room" || id === this.creator;
   }
+  private roundContext(index: number) { return { players: this.players, inputs: this.authority.inputsFor(index) }; }
+  private advanceAction(): LudiView['actions'] {
+    return this.authority.state().round.index < this.game.rounds.length - 1
+      ? [{ type: 'next', label: 'Próxima ronda' }]
+      : [{ type: 'finish', label: this.game.scoring === false ? 'Ver o nosso resumo' : 'Ver pontuação final' }];
+  }
   private legalActions(id: string): LudiView["actions"] {
     const { phase, round } = this.authority.state();
     const control = this.canControl(id);
@@ -88,17 +99,22 @@ export class MatchController {
         ? [{ type: "start", label: "Começar partida" }]
         : [];
     }
-    if (phase === "results") return control ? [{ type: "replay", label: "Jogar novamente" }] : [];
+    if (phase === "results") return control ? [
+      ...(this.game.canContinue?.() ? [{ type: 'continue' as const, label: 'Mais 5' }] : []),
+      { type: 'replay', label: 'Jogar novamente' },
+    ] : [];
     if (this.mode === "same-device" && id !== this.localActor()) return [];
     if (this.handoff) return [{ type: "ready", label: "Estou pronto/a" }];
-    if (round.state === "open" && !this.authority.inputsFor(round.index).has(id)) {
-      return [this.roundAt(round.index).legalAnswer()];
+    const r = this.roundAt(round.index), ctx = this.roundContext(round.index);
+    if (round.state === 'open') {
+      if (!r.requiresInput(ctx)) return [...(control ? this.advanceAction() : []), ...(r.allowSkip ? [{ type: 'skip' as const, label: 'Passar sem explicar' }] : [])];
+      if (r.eligiblePlayers(ctx).includes(id) && !ctx.inputs.has(id)) return [
+        r.legalAnswer(ctx), ...(r.allowSkip ? [{ type: 'skip' as const, label: 'Passar sem explicar' }] : []),
+      ];
     }
     if (round.state === "locked" && control) return [{ type: "reveal", label: "Ver resultado" }];
     if (round.state === "reveal" && control)
-      return round.index < this.game.rounds.length - 1
-        ? [{ type: "next", label: "Próxima ronda" }]
-        : [{ type: "finish", label: "Ver pontuação final" }];
+      return this.advanceAction();
     return [];
   }
   /** Validate again at the authority, including optimistic round/match tokens.
@@ -127,7 +143,7 @@ export class MatchController {
       throw new LudiError(409, "Esta ação já não está disponível.");
     let input: unknown;
     if (action.type === "answer") {
-      const validated = this.roundAt(round.index).parseAnswer(raw);
+      const validated = this.roundAt(round.index).parseAnswer(raw, this.roundContext(round.index));
       if (!validated) throw new LudiError(400, "Resposta inválida.");
       input = validated.input;
     } else if (!actionEnvelopeSchema.strict().safeParse(raw).success) {
@@ -149,37 +165,61 @@ export class MatchController {
       case "ready":
         this.handoff = false;
         break;
-      case "answer": {
+      case 'skip': {
         const index = this.authority.state().round.index;
-        this.authority.submit(index, id, input);
-        if (this.authority.inputsFor(index).size === this.players.length) {
-          this.authority.lock();
-          if (this.mode !== "room") this.authority.reveal();
-        } else if (this.mode === "same-device") {
-          this.turn++;
-          this.handoff = true;
+        if (!this.roundAt(index).requiresInput(this.roundContext(index))) {
+          this.authority.submit(index, id, { skip: true });
+          await this.advanceConversation();
+          break;
         }
+        this.submitInput(index, id, { skip: true });
+        break;
+      }
+      case "answer": {
+        this.submitInput(this.authority.state().round.index, id, input);
         break;
       }
       case "reveal":
         this.authority.reveal();
         break;
       case "next":
+        this.closeConversation();
         this.authority.next();
         this.authority.open();
         this.beginRound();
         break;
       case "finish":
+        this.closeConversation();
         await this.authority.finish(this.scores());
         break;
+      case 'continue':
       case "replay":
-        if (this.game.nextRounds) this.game.rounds = this.game.nextRounds();
+        if (this.game.nextRounds) this.game.rounds = this.game.nextRounds(action.type);
         this.match++;
-        this.authority.replay();
+        this.authority.replay(this.game.rounds.length);
         this.authority.open();
         this.beginRound();
         break;
     }
+  }
+  private submitInput(index: number, id: string, input: unknown) {
+    this.authority.submit(index, id, input);
+    if (this.roundAt(index).isComplete(this.roundContext(index))) {
+      this.authority.lock();
+      if (this.mode !== 'room') this.authority.reveal();
+    } else if (this.mode === 'same-device') { this.turn++; this.handoff = true; }
+  }
+  private closeConversation() {
+    const { round } = this.authority.state();
+    if (round.state === 'open' && !this.roundAt(round.index).requiresInput(this.roundContext(round.index))) {
+      this.authority.lock(); this.authority.reveal();
+    }
+  }
+  private async advanceConversation() {
+    this.closeConversation();
+    if (this.authority.state().round.index < this.game.rounds.length - 1) {
+      this.authority.next(); this.authority.open(); this.beginRound();
+    } else await this.authority.finish(this.scores());
   }
   private beginRound() {
     this.turn = 0;
@@ -215,6 +255,7 @@ export class MatchController {
         participantId: id,
         permissions: { control: this.canControl(id) },
       },
+      capacity: { ...requireMode(this.game.manifest, this.mode).players },
       gameId: this.game.manifest.id,
       title: this.game.manifest.name,
       revision: this.revision,
@@ -228,17 +269,20 @@ export class MatchController {
     };
     if (this.handoff) view.handoff = { name: this.players[this.turn]?.name ?? "" };
     if (phase === "active" && !this.handoff) {
-      view.content = r.publicContent();
+      const ctx = this.roundContext(round.index);
+      view.content = r.publicContent(ctx, id);
+      view.stage = r.stage(ctx);
       const input = this.authority.inputsFor(round.index).get(id);
       if (input !== undefined) Object.assign(view, r.ownView(input));
       if (round.state === "reveal") {
         view.reveal = this.reveal(round.index);
-        view.scores = this.scores();
+        if (this.game.scoring !== false) view.scores = this.scores();
       }
     }
     if (phase === "results") {
-      view.scores = this.scores();
+      if (this.game.scoring !== false) view.scores = this.scores();
       view.history = this.game.rounds.map((r, i) => r.history(this.authority.inputsFor(i)));
+      if (this.game.summarize) view.summary = this.game.summarize(view.history);
     }
     return view;
   }

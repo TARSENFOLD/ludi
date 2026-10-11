@@ -56,7 +56,7 @@ export const actionEnvelopeSchema = z.object({
   id: z.string().min(8).max(80).regex(/^[\w-]+$/),
   match: z.number().int().positive(),
   round: z.number().int().nonnegative(),
-  type: z.enum(["start", "answer", "reveal", "next", "finish", "replay", "ready"]),
+  type: z.enum(["start", "answer", "reveal", "next", "finish", "replay", "ready", "skip", "continue"]),
 });
 export type ActionEnvelope = z.infer<typeof actionEnvelopeSchema>;
 export type LudiAction<Payload extends object = object> = ActionEnvelope & Payload;
@@ -78,7 +78,7 @@ export interface SessionView {
   match: number;
   /** Room is the ephemeral execution context; match increments on replay.
    * A future persistent Party is a separate social entity, not this room. */
-  phase: "lobby" | "active" | "results";
+  phase: "lobby" | "preparation" | "active" | "results";
   round: number;
   totalRounds: number;
   roundState: "ready" | "open" | "locked" | "reveal";
