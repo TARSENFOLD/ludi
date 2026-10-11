@@ -2,7 +2,9 @@
 
 Verificado em 11 outubro 2026. Fonte: [Entre Nós — Documento do Jogo](https://app.notion.com/p/3f514ba90ba6814d8b37eee13ae7828f), última edição indicada pelo Notion: 10 outubro 2026, 17:31 UTC.
 
-Esta nota regista requisitos e diferenças; não declara a evolução implementada. A release `2189d51` publica Na Mesma Onda e conserva o Entre Nós atual.
+Atualização: divergências consolidadas e implementação autorizada em 11 outubro; ver [regras consolidadas](entre-nos-social.md).
+
+Esta nota regista a leitura anterior de requisitos e diferenças; não declara a evolução implementada. A release `2189d51` publica Na Mesma Onda e conserva o Entre Nós atual.
 
 ## Direção encontrada
 

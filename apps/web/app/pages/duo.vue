@@ -1,1 +1,1 @@
-<template><LudiCreateRoom game-id="entre-nos" /></template>
+<template><LudiEntreEntry /></template>

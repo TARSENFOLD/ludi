@@ -5,11 +5,25 @@ import { guessContentSchema, guessRules } from '../blocks/guess/rules';
 import { pollContentSchema, pollRules } from '../blocks/poll/rules';
 import { spectrumContentSchema, spectrumInputSchema, scoreSpectrum } from '../blocks/spectrum/rules';
 
+export interface RoundContext { players: Participant[]; inputs: Map<string, unknown> }
+export const allPlayers = (ctx: RoundContext) => ctx.players.map(p => p.id);
+export const allComplete = (ctx: RoundContext) => allPlayers(ctx).every(id => ctx.inputs.has(id));
+export const defaultRoundFlow = {
+  eligiblePlayers: allPlayers,
+  isComplete: allComplete,
+  requiresInput: () => true,
+  stage: (_ctx: RoundContext): string | undefined => undefined,
+};
 export interface LudiRound {
-  publicContent(): PublicRound;
-  parseAnswer(raw: unknown): { action: LudiAction; input: unknown } | undefined;
-  legalAnswer(): LegalAction;
-  ownView(input: unknown): { ownChoice?: number; ownValue?: number };
+  eligiblePlayers(ctx: RoundContext): string[];
+  isComplete(ctx: RoundContext): boolean;
+  requiresInput(ctx: RoundContext): boolean;
+  stage(ctx: RoundContext): string | undefined;
+  allowSkip?: boolean;
+  publicContent(ctx?: RoundContext, participantId?: string): PublicRound;
+  parseAnswer(raw: unknown, ctx?: RoundContext): { action: LudiAction; input: unknown } | undefined;
+  legalAnswer(ctx?: RoundContext): LegalAction;
+  ownView(input: unknown): { ownChoice?: number; ownValue?: number; skipped?: boolean };
   reveal(inputs: Map<string, unknown>): RoundReveal;
   scores(inputs: Map<string, unknown>, players: Participant[]): Map<string, number>;
   history(inputs: Map<string, unknown>): RoundHistory;
@@ -20,6 +34,7 @@ export function defineRounds(rounds: Array<{ kind: 'poll' | 'guess'; content: un
   return rounds.map(({ kind, content: raw }) => {
     const content = kind === 'poll' ? pollContentSchema.parse(raw) : guessContentSchema.parse(raw);
     const adapter: LudiRound = {
+      ...defaultRoundFlow,
       publicContent: () => ({ kind, prompt: content.prompt, options: content.options.map(o => o.label) }),
       parseAnswer(raw) {
         const parsed = choiceAction.safeParse(raw);
@@ -55,6 +70,7 @@ export function spectrumRound(raw: unknown): LudiRound {
   const content = spectrumContentSchema.parse(raw);
   const tally = (inputs: Map<string, unknown>) => scoreSpectrum(inputs as Map<string, { value: number }>);
   const adapter: LudiRound = {
+      ...defaultRoundFlow,
     publicContent: () => ({ kind: 'spectrum', prompt: content.prompt, leftLabel: content.leftLabel, rightLabel: content.rightLabel }),
     parseAnswer(raw) {
       const parsed = scaleAction.safeParse(raw);

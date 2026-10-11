@@ -13,7 +13,7 @@ export interface RoundAuthority {
   reveal(): void;
   next(): void;
   finish(results: unknown): Promise<void>;
-  replay(): void;
+  replay(roundCount?: number): void;
   dispose(): void;
 }
 export class LocalRoundAuthority implements RoundAuthority {
@@ -48,7 +48,8 @@ export class LocalRoundAuthority implements RoundAuthority {
   async finish(_results: unknown) {
     this.current = reduce(this.current, { type: "finish" });
   }
-  replay() {
+  replay(roundCount?: number) {
+    if (roundCount !== undefined) this.roundCount = roundCount;
     this.inputs.clear();
     this.current = structuredClone(INITIAL_STATE);
     this.start();

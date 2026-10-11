@@ -10,7 +10,7 @@ import type { RoundAuthority } from "@doot-games/engine/local";
 import type { LudiView } from "@doot-games/games/ludi/contracts";
 import type { RuleEnvironment } from "@doot-games/sdk/ludi";
 import { MatchController, LudiError, type GameDefinition } from "@doot-games/games/ludi/controller";
-import { createRoomDefinition } from "@doot-games/games/ludi/server";
+import { PreparedRoom, createRoomDefinition } from "@doot-games/games/ludi/server";
 
 export const ROOM_TTL = 8 * 60 * 60 * 1000;
 export const IDLE_ROOM_TTL = 30 * 60 * 1000;
@@ -59,7 +59,7 @@ async function createAuthority(
     reveal: () => runtime.reveal(),
     next: () => runtime.next(),
     finish: (results) => runtime.finish(results as RelayValue),
-    replay: () => runtime.nextGame(game),
+    replay: (count) => { if (count !== undefined) game.rounds = Array.from({ length: count }, () => ({ timer: null })); runtime.nextGame(game); },
     dispose: () => {
       runtime.dispose();
       relay.close();
@@ -67,7 +67,7 @@ async function createAuthority(
   };
 }
 interface RoomEntry {
-  controller: MatchController;
+  controller: MatchController | PreparedRoom;
   members: Map<string, string>;
   expiresAt: number;
   createdByIp: string;
@@ -79,24 +79,24 @@ interface RoomEntry {
 export class LudiRoomService {
   private rooms = new Map<string, RoomEntry>();
   private pending = new Map<string, { token: string; ip: string }>();
-  private creations = new Map<string, { gameId: string; name: unknown; result: Promise<string>; code?: string }>();
+  private creations = new Map<string, { gameId: string; experience?: string; name: unknown; result: Promise<string>; code?: string }>();
   private sweepTimer: ReturnType<typeof setInterval>;
   constructor(private environment: RuleEnvironment = { now: Date.now, random: Math.random }) {
     this.sweepTimer = setInterval(() => this.sweep(), 60_000);
     this.sweepTimer.unref?.();
   }
-  async create(token: string, name: unknown, requestId: string = randomUUID(), ip = "internal", gameId = "entre-nos") {
+  async create(token: string, name: unknown, requestId: string = randomUUID(), ip = "internal", gameId = "entre-nos", experience?: "social") {
     this.sweep();
     const key = `${token}:${requestId}`;
     const previous = this.creations.get(key);
     if (previous) {
-      if (previous.name !== name || previous.gameId !== gameId)
+      if (previous.name !== name || previous.gameId !== gameId || previous.experience !== experience)
         throw new LudiError(409, "Identificador já usado noutra criação.");
       return this.view(await previous.result, token);
     }
-    const entry: { gameId: string; name: unknown; result: Promise<string>; code?: string } = {
-      name, gameId,
-      result: this.allocate(token, name, ip, gameId),
+    const entry: { gameId: string; experience?: string; name: unknown; result: Promise<string>; code?: string } = {
+      name, gameId, experience,
+      result: this.allocate(token, name, ip, gameId, experience),
     };
     this.creations.set(key, entry);
     try {
@@ -107,7 +107,7 @@ export class LudiRoomService {
       throw error;
     }
   }
-  private async allocate(token: string, name: unknown, ip: string, gameId: string) {
+  private async allocate(token: string, name: unknown, ip: string, gameId: string, experience?: "social") {
     if (this.rooms.size + this.pending.size >= 250)
       throw new LudiError(503, "As salas estão ocupadas. Tenta novamente mais tarde.");
     if (
@@ -127,11 +127,12 @@ export class LudiRoomService {
       code = randomBytes(4).toString("hex").toUpperCase();
     } while (this.rooms.has(code) || this.pending.has(code));
     this.pending.set(code, { token, ip });
-    let controller: MatchController | undefined;
+    let controller: MatchController | PreparedRoom | undefined;
     try {
       const definition = createRoomDefinition(gameId, this.environment);
       const id = randomUUID();
-      controller = new MatchController(
+      if (experience && gameId !== 'entre-nos') throw new LudiError(400, 'Experiência indisponível.');
+      controller = experience === 'social' ? new PreparedRoom(id, this.environment, definition => createAuthority(code, this.environment, definition), Number(process.env.LUDI_CUSTOM_QUESTION_LIMIT) || 50) : new MatchController(
         definition,
         "room",
         await createAuthority(code, this.environment, definition),
@@ -198,6 +199,12 @@ export class LudiRoomService {
     this.room(code);
     this.notify(code, room);
     return this.view(code, token);
+  }
+  async prepare(code: string, token: string, action: unknown) {
+    const room = this.room(code);
+    if (!(room.controller instanceof PreparedRoom)) throw new LudiError(409, 'Esta sala não tem preparação.');
+    await room.controller.prepare(this.participant(room, token), action);
+    this.room(code); this.notify(code, room); return this.view(code, token);
   }
   subscribe(code: string, token: string, view: (view: LudiView) => void, expired: () => void) {
     const room = this.room(code);

@@ -123,3 +123,14 @@ No modo local não existe sala/relay/rede durante a partida. Recarregar reinicia
 - **boardgame.io:** referência para fases/turnos e separação autoridade/transporte; framework não adicionada.
 
 As quatro últimas referências orientam o desenho; não foi copiado código desses projetos nesta etapa.
+
+
+## Extensão social de Entre Nós (outubro 2026)
+
+A experiência social usa os mesmos envelopes, identidade e transporte. A preparação aparece como fase `preparation`, com comandos em `POST /api/ludi/rooms/:code/preparation` contendo `id` e `revision`. `PreparedRoom` coordena configuração, perguntas privadas e prontidão; só materializa a definição e cria a autoridade da partida quando o grupo pode começar.
+
+O adapter declara `eligiblePlayers`, `isComplete`, `requiresInput` e `stage`. Ações em rondas por etapas incluem `stage`, validada de novo no servidor. `skip` representa passagem voluntária; `continue` seleciona o próximo bloco sem reusar perguntas próprias já utilizadas. `nextRounds` recebe a intenção de repetição ou continuação. Os jogos existentes mantêm o quorum de todos os participantes e os seus formatos.
+
+Tipos de perguntas, preparação e resumos sociais pertencem à camada de jogos. O SDK conserva os envelopes comuns; o controlador delega regras, visão e resumo. Toda a preparação, incluindo a visão do criador, usa a mesma fronteira de filtragem HTTP/SSE.
+
+Criação com `gameId: "entre-nos", experience: "social"` seleciona esta experiência no registry explícito. A omissão de `experience` preserva o protocolo anterior de quatro rondas para compatibilidade. A UI `/ludi/entre-nos` e `/duo` envia sempre `social`. Ver [regras, provas e limites](./entre-nos-social.md).

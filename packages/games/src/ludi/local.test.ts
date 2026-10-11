@@ -67,11 +67,11 @@ describe("local contract proof, without Vue or relay", () => {
   });
   it("filters modes, people, typical time and vibe together", () => {
     expect(
-      discoverGames({ mode: "room", players: 2, minutes: 5, vibe: "conversation" }).map(
+      discoverGames({ mode: "room", players: 2, minutes: 12, vibe: "conversation" }).map(
         (g) => g.id,
       ),
-    ).toEqual(["entre-nos"]);
-    expect(discoverGames({ mode: "room", players: 3 }).map(g => g.id)).toEqual(["na-mesma-onda"]);
+    ).toEqual(["entre-nos", "na-mesma-onda"]);
+    expect(discoverGames({ mode: "room", players: 3 }).map(g => g.id)).toEqual(["entre-nos", "na-mesma-onda"]);
     expect(discoverGames({ mode: "same-device", minutes: 5 })).toEqual([]);
     expect(discoverGames({ players: 1 })[0]?.modes.map((m) => m.mode)).toEqual(["solo"]);
     expect(discoverGames({ mode: "same-device", players: 6, minutes: 8 })).toHaveLength(1);

@@ -6,6 +6,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { once } from "node:events";
 
+const testSocial = process.argv.includes("--social");
 const testOnda = process.argv.includes("--onda");
 const root = new URL("../", import.meta.url);
 const files = await readdir(new URL("apps/web/.output/public/_nuxt/", root), { recursive: true });
@@ -18,6 +19,8 @@ for (const file of files.filter((f) => /\.(js|map)$/.test(f))) {
     "Temos cinco minutos livres.",
     "Se hoje tivesse uma banda sonora",
     "Uma caminhada sem destino",
+    "O teu sábado ideal começa como?",
+    "Conta uma descoberta pequena que melhorou a tua rotina.",
     "Um robot que só conta piadas más",
   ]) {
     assert(!source.includes(secret), `Room content leaked into client asset ${file}`);
@@ -142,7 +145,67 @@ try {
     }
   }
   console.log("Public profile: root entry, catalogue and legacy API isolation passed.");
-  if (testOnda) {
+  if (testSocial) {
+    assert.equal((await fetch(`${base}/ludi/entre-nos`)).status, 200);
+    const people = Array.from({length: 4}, client);
+    const create = { name:'Pessoa 0', id:id(), gameId:'entre-nos', experience:'social' };
+    const created = await people[0].request('',create);
+    assert.equal(created.status,200); assert.equal(created.body.phase,'preparation');
+    const code = created.body.code;
+    assert.equal((await people[0].request('',{...create,experience:undefined})).status,409);
+    for(let i=1;i<4;i++) assert.equal((await people[i].request(`/${code}/join`,{name:`Pessoa ${i}`})).status,200);
+    const latest = [];
+    const get = async i => latest[i] = (await people[i].request(`/${code}`)).body;
+    const prep = async (i,payload) => people[i].request(`/${code}/preparation`,{id:id(),revision:(await get(i)).revision,...payload});
+    const send = async (i,type,extra={}) => {const v=latest[i] ?? await get(i); const r=await people[i].request(`/${code}/actions`,{id:id(),match:v.match,round:v.round,type,...extra}); if(r.status===200)latest[i]=r.body; return r;};
+    assert.equal((await prep(1,{type:'advance'})).status,403);
+    assert.equal((await prep(0,{type:'advance'})).status,200);
+    assert.equal((await prep(0,{type:'context',context:'friends'})).status,200);
+    assert.equal((await prep(0,{type:'mode',mode:'entre-nos'})).status,200);
+    const hostEvents = await people[0].stream(code), guestEvents = await people[1].stream(code);
+    streams.push(hostEvents,guestEvents);
+    const privateQuestion = {id:id(),prompt:'PRIVATE-HTTP-QUESTION guest one',options:['Alpha','Beta','Gamma','Delta'],correctIndex:2,status:'submitted'};
+    assert.equal((await prep(1,{type:'save-question',question:privateQuestion})).status,200);
+    const own = await get(1); assert.equal(own.preparation.ownQuestions[0].correctIndex,2);
+    assert.equal(JSON.stringify(await get(0)).includes(privateQuestion.prompt),false);
+    assert.equal((await prep(0,{type:'delete-question',questionId:privateQuestion.id})).status,403);
+    const repeated = {id:id(),revision:own.revision,type:'save-question',question:privateQuestion};
+    const saved=await people[1].request(`/${code}/preparation`,repeated);assert.equal(saved.status,200);
+    assert.equal((await people[1].request(`/${code}/preparation`,repeated)).status,200);
+    for(let i=0;i<4;i++) assert.equal((await prep(i,{type:'readiness',ready:true})).status,200);
+    const roster=(await get(0)).players;
+    assert.equal((await send(0,'start')).status,200);
+    const initial=(await get(0));
+    assert.equal((await prep(1,{type:'save-question',question:privateQuestion})).status,409);
+    const names = new Set();
+    for(let guard=0;guard<80;guard++) {
+      const v=await get(0);
+      if(v.phase==='results') break;
+      names.add(v.content.prompt);
+      if(v.content.kind==='conversation'){await get(1);assert.equal((await send(1,'skip')).status,200);continue;}
+      // Read every role afresh: answering can transition prediction -> target-answer.
+      for(let i=0;i<4;i++) {
+        const own=await get(i), a=own.actions.find(a=>a.type==='answer');
+        if(a){const response=await send(i,'answer',{choice:0,...(a.stage?{stage:a.stage}:{})});assert.equal(response.status,200);assert.equal(response.body.reveal,undefined);}
+      }
+      const after=await get(0);
+      if(after.roundState==='locked') assert.equal((await send(0,'reveal')).status,200);
+      if((await get(0)).roundState==='reveal') assert.equal((await send(0,after.round===after.totalRounds-1?'finish':'next')).status,200);
+    }
+    const results=await get(0);assert.equal(results.phase,'results');assert.equal(results.history.length,10);assert(results.summary);assert.equal(results.scores,undefined);
+    const continuation={id:id(),match:results.match,round:results.round,type:'continue'};
+    const [a,b]=await Promise.all([people[0].request(`/${code}/actions`,continuation),people[0].request(`/${code}/actions`,continuation)]);
+    assert.equal(a.status,200);assert.equal(b.status,200);assert.equal(a.body.match,2);assert.equal(a.body.totalRounds,5);assert.deepEqual(a.body.content,b.body.content);assert.deepEqual(a.body.players,roster);
+    assert.equal((await get(1)).context.participantId,roster[1].id);
+    for(let i=0;i<100 && hostEvents.events.at(-1)?.match!==2;i++) await new Promise(r=>setTimeout(r,10));
+    assert(hostEvents.events.length>15);
+    for(const event of hostEvents.events){
+      assert(!JSON.stringify(event).includes('correctIndex') || event.roundState==='reveal' || event.phase==='results');
+      if(event.preparation) assert(!JSON.stringify(event).includes(privateQuestion.prompt));
+      if(event.phase==='active' && event.roundState!=='reveal'){assert.equal(event.reveal,undefined);assert.equal(event.scores,undefined);assert.equal(event.history,undefined);}
+    }
+    console.log('Entre Nós social HTTP/SSE: preparation privacy, guest ownership, frozen questions, 4 roles, ten moments, prediction stages, reconnect and idempotent continuation passed.');
+  } else if (testOnda) {
     const probe = client();
     for (const gameId of ['../spectrum'])
       assert.equal((await probe.request('', { name: 'Teste', id: id(), gameId })).status, 400);

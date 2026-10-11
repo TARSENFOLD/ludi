@@ -2,19 +2,19 @@
 import type { LudiView } from "@doot-games/games/ludi/contracts";
 import { ludiActionId } from '../utils/ludi-session'
 import '../assets/ludi.css'
-const props = defineProps<{ gameId: 'entre-nos' | 'na-mesma-onda' }>()
+const props = defineProps<{ gameId: 'entre-nos' | 'na-mesma-onda'; experience?: 'social' }>()
 const onda = computed(() => props.gameId === 'na-mesma-onda')
 const title = computed(() => onda.value ? 'Na Mesma Onda' : 'Entre Nós')
 useHead(() => ({ title: `${title.value} · Ludi`, htmlAttrs: { lang: 'pt-PT' } }))
 const name = ref('')
 const busy = ref(false)
 const error = ref('')
-let request: { name: string; id: string; gameId: string } | undefined
+let request: { name: string; id: string; gameId: string; experience?: "social" } | undefined
 async function createRoom() {
   if (busy.value) return
   busy.value = true; error.value = ''
   try {
-    if (!request || request.name !== name.value || request.gameId !== props.gameId) request = { name: name.value, id: ludiActionId(), gameId: props.gameId }
+    if (!request || request.name !== name.value || request.gameId !== props.gameId || request.experience !== props.experience) request = { name: name.value, id: ludiActionId(), gameId: props.gameId, ...(props.experience ? { experience: props.experience } : {}) }
     const view = await $fetch<LudiView>('/api/ludi/rooms', { method: 'POST', body: request })
     await navigateTo(`/ludi/salas/${view.code}`)
   } catch (e: unknown) {
@@ -28,9 +28,9 @@ async function createRoom() {
     <form class="ludi-narrow ludi-setup" :aria-busy="busy" @submit.prevent="createRoom">
       <div class="ludi-form-heading">
         <LudiGameMark :game="gameId" />
-        <p class="ludi-eyebrow">{{ onda ? '2–6 pessoas · cerca de 6 min' : '2 pessoas · cerca de 5 min' }}</p>
-        <h1>{{ onda ? 'Estão na mesma onda?' : 'Uma pausa a dois.' }}</h1>
-        <p class="ludi-lead">{{ onda ? 'Seis temas, uma escala. Cada um escolhe, depois descobrem a sintonia do grupo.' : 'Cria a sala, envia o convite. Quatro rondas para descobrir o que vos liga.' }}</p>
+        <p class="ludi-eyebrow">{{ onda ? '2–6 pessoas · cerca de 6 min' : props.experience ? '2–6 pessoas · cerca de 10–15 min' : '2 pessoas · cerca de 5 min' }}</p>
+        <h1>{{ onda ? 'Estão na mesma onda?' : props.experience ? 'Quem se junta?' : 'Uma pausa a dois.' }}</h1>
+        <p class="ludi-lead">{{ onda ? 'Seis temas, uma escala. Cada um escolhe, depois descobrem a sintonia do grupo.' : props.experience ? 'Cria a sala e envia o convite. Depois escolhem o contexto e preparam a conversa.' : 'Cria a sala, envia o convite. Quatro rondas para descobrir o que vos liga.' }}</p>
       </div>
       <p v-if="onda" class="ludi-small">Sem resposta certa e sem pressa. A dois, contam os pontos da dupla; em grupo, a proximidade à média.</p>
       <label for="name">Como te chamas?</label>
