@@ -2,7 +2,7 @@
 
 Data: 10 outubro 2026. Branch: `feat/na-mesma-onda`.
 
-**Estado: Ludi-ready; publicação em preparação.** O utilizador confirmou «passou» no teste físico em iPhone e outro aparelho: escala, retrato/paisagem, confirmação, recarregamento para retoma, conclusão e revanche. O controlo automatizado do Browser continuou indisponível; não se reivindica uma inspeção visual automatizada nem uma sessão VoiceOver separada. A validação visual em aparelhos reais é a evidência desta entrega.
+**Estado: Ludi-ready; publicado em 11 outubro 2026 em [ludi.usepdc.com/ludi/na-mesma-onda](https://ludi.usepdc.com/ludi/na-mesma-onda).** O utilizador confirmou «passou» no teste físico em iPhone e outro aparelho: escala, retrato/paisagem, confirmação, recarregamento para retoma, conclusão e revanche. O controlo automatizado do Browser continuou indisponível; não se reivindica uma inspeção visual automatizada nem uma sessão VoiceOver separada. A validação visual em aparelhos reais é a evidência desta entrega.
 
 ## Implementação
 
@@ -47,4 +47,12 @@ A restrição temporária de preview foi removida após a confirmação do utili
 5. Completar seis rondas; repetir; confirmar mesmas identidades, zero pontuação anterior e novos temas.
 6. Verificar foco/teclado e VoiceOver: nome da escala, extremos, valor e feedback de confirmação. Com 3+ pessoas, conferir empates e classificação individual.
 
-Confirmação física recebida nesta tarefa; publicação sucede à aprovação da CI e integração do PR. Participantes fixos e controlo exclusivo do criador são limites deliberados do MVP.
+Confirmação física recebida nesta tarefa; PR #5 integrado e publicação concluída após aprovação da CI. Participantes fixos e controlo exclusivo do criador são limites deliberados do MVP.
+
+## Evidência da publicação — 11 outubro 2026
+
+- [PR #5](https://github.com/TARSENFOLD/ludi/pull/5) integrado em `2189d519c1e1294468d4c021cc03b02da7d843eb`.
+- [Release CI](https://github.com/TARSENFOLD/ludi/actions/runs/38038341513): jobs check e image concluídos com sucesso.
+- ZIP verificado na VPS: SHA-256 `df3991659dd59a017cd999f0f92bce2023e2102e22fc44dca3b477ef0ed68afe`. Apenas Ludi recriado, saudável; PDC sem reinícios.
+- Provas contra HTTPS público: catálogo com o terceiro jogo; Entre Nós com quatro rondas; Na Mesma Onda com **2 e 6 sessões independentes**, seis rondas, privacidade HTTP/SSE, identidade, retoma, inputs estritos e revanche idempotente. Cookies Secure/HttpOnly verificados.
+- A matriz 2/3/6 foi validada na CI; a repetição pública cobriu 2/6. O teste físico reportado acima ocorreu na pré-visualização, antes da publicação.

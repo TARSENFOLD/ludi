@@ -1,6 +1,6 @@
 # Publicação e operação do Ludi
 
-Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Interface atual integrada no PR #4. Imagem em execução: `ludi:5696418032ac00a208338ce3e0a784ecc39dd9fe`.
+Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Interface atual integrada no PR #4; Na Mesma Onda integrado no PR #5 e publicado em 11 out 2026. Imagem em execução: `ludi:2189d519c1e1294468d4c021cc03b02da7d843eb`.
 
 ## Infraestrutura existente verificada
 
@@ -60,6 +60,14 @@ Projeto Compose separado `ludi`, diretório `~/ludi` do utilizador de deploy (mo
 - HTTPS e nova homepage editorial verificados no browser público. Preparação do quiz, início, primeira resposta e pontuação (+1) confirmados.
 - Prova HTTP/SSE contra a origem pública aprovada: quatro rondas, cookies Secure/HttpOnly, origem, identidade, retoma, filtragem, idempotência, entrada concorrente e limites.
 - A QA responsive documentada continua válida; esta publicação não constitui um novo teste físico no iPhone.
+
+## Publicação de Na Mesma Onda — 11 out 2026
+
+- [PR #5](https://github.com/TARSENFOLD/ludi/pull/5) integrado em `2189d519c1e1294468d4c021cc03b02da7d843eb`, após aceitação física do utilizador no iPhone e outro aparelho.
+- [Release CI](https://github.com/TARSENFOLD/ludi/actions/runs/38038341513): check e image aprovados. ZIP verificado no destino: SHA-256 `df3991659dd59a017cd999f0f92bce2023e2102e22fc44dca3b477ef0ed68afe`.
+- Apenas Ludi foi recriado e ficou saudável. Imagem anterior `5696418032ac00a208338ce3e0a784ecc39dd9fe` conservada para rollback. Os quatro serviços PDC mantiveram os instantes de arranque e healthchecks.
+- HTTPS, catálogo público e bloqueio das APIs legadas verificados. Entre Nós passou quatro rondas; Na Mesma Onda passou seis rondas com 2 e 6 sessões independentes, retoma, privacidade HTTP/SSE, identidade, inputs e revanche idempotente. Cookies Secure/HttpOnly verificados.
+- O teste físico passou antes do deploy. Esta publicação não reivindica um novo teste físico nem QA visual automatizada.
 
 ## Atualizar ou recuperar o serviço
 
