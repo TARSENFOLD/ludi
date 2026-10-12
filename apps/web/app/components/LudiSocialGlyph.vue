@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{ label?: string; variant?: number }>()
-const motif = computed(() => /casa|paz|descanso|dormir|noite/i.test(props.label ?? '') ? 'moon' : /amig|grupo|pessoa|conhec/i.test(props.label ?? '') ? 'people' : /casal|amor|cuidado|coração/i.test(props.label ?? '') ? 'heart' : /passe|viag|fora|parque|natureza/i.test(props.label ?? '') ? 'tree' : ['spark','sun','speech','tree'][(props.variant ?? 0) % 4])
+const motif = computed(() => /\b(casa|paz|descanso|dormir|noite)\b/i.test(props.label ?? '') ? 'moon' : /amig|grupo|pessoa|conhec/i.test(props.label ?? '') ? 'people' : /casal|amor|cuidado|coração/i.test(props.label ?? '') ? 'heart' : /passe|viag|fora|parque|natureza/i.test(props.label ?? '') ? 'tree' : ['spark','sun','speech','tree'][(props.variant ?? 0) % 4])
 </script>
 <template>
   <svg class="social-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true">
