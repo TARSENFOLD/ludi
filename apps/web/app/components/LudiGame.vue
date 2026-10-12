@@ -104,6 +104,7 @@ async function configureAgain() {
 <template>
   <LudiTicTacToe v-if="view?.ticTacToe" :view="view" :session="session" :connection="connection" />
   <LudiPreparation v-else-if="view?.preparation && connection?.state !== 'ended'" :view="view" :session="session" :connection="connection" />
+  <LudiSocialGame v-else-if="view && social" :view="view" :session="session" :connection="connection" />
   <main v-else-if="view" class="ludi-page ludi-game" :style="{ '--l-controls-height': `${controlsHeight}px` }">
     <LudiHeader :context="me ? `${view.title} · ${me.name}` : view.title" />
     <p class="sr-only" role="status" aria-live="polite">{{ announcement }}</p>

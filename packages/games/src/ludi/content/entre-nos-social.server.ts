@@ -1,4 +1,5 @@
 /** Original Portuguese editorial bank. Server-only: never export through the client catalogue. */
+import { editorialTheme } from './entre-nos-editorial.server';
 import type { SessionRelationship } from '../contracts';
 import type { MomentType } from '../social-rounds';
 export interface SocialQuestion {
@@ -221,8 +222,8 @@ export const socialQuestions: readonly SocialQuestion[] = [
       type: i % 3 === 0 ? 'prediction' : i % 3 === 1 ? 'sync' : 'quick-choice',
       depth: i < 35 ? 1 : i < 70 ? 2 : i < 90 ? 3 : 4,
       contexts: i >= 75 && i < 90 ? all.filter(c => c !== 'strangers') : all,
-      minPlayers: 2, sensitivity: i >= 75 && i < 90 ? 'moderate' : 'low', tags: [i < 50 ? 'quotidiano' : 'relações'] };
+      minPlayers: 2, sensitivity: i >= 75 && i < 90 ? 'moderate' : 'low', tags: [editorialTheme('choice', i)] };
   }),
-  ...stories.map((prompt, i): SocialQuestion => ({ id: `en-story-${String(i + 1).padStart(3, '0')}`, prompt, type: 'story', depth: i < 20 ? 1 : i < 35 ? 2 : 3, contexts: all, minPlayers: 2, sensitivity: 'low', tags: ['memória', 'história'] })),
-  ...group.map((prompt, i): SocialQuestion => ({ id: `en-social-${String(i + 1).padStart(3, '0')}`, prompt, type: i < 25 ? 'who-here' : 'perception', depth: i < 25 ? 2 : 4, contexts: all, minPlayers: i < 25 ? 3 : 2, sensitivity: 'low', tags: [i < 25 ? 'grupo' : 'descoberta'] })),
+  ...stories.map((prompt, i): SocialQuestion => ({ id: `en-story-${String(i + 1).padStart(3, '0')}`, prompt, type: 'story', depth: i < 20 ? 1 : i < 35 ? 2 : 3, contexts: all, minPlayers: 2, sensitivity: 'low', tags: [editorialTheme('story', i)] })),
+  ...group.map((prompt, i): SocialQuestion => ({ id: `en-social-${String(i + 1).padStart(3, '0')}`, prompt, type: i < 25 ? 'who-here' : 'perception', depth: i < 25 ? 2 : 4, contexts: all, minPlayers: i < 25 ? 3 : 2, sensitivity: 'low', tags: [editorialTheme('social', i)] })),
 ];

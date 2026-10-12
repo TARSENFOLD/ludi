@@ -23,7 +23,7 @@ export interface LudiRound {
   publicContent(ctx?: RoundContext, participantId?: string): PublicRound;
   parseAnswer(raw: unknown, ctx?: RoundContext): { action: LudiAction; input: unknown } | undefined;
   legalAnswer(ctx?: RoundContext): LegalAction;
-  ownView(input: unknown): { ownChoice?: number; ownValue?: number; skipped?: boolean };
+  ownView(input: unknown): { ownChoice?: number; ownValue?: number; skipped?: boolean; ownText?: string; oralShared?: boolean };
   reveal(inputs: Map<string, unknown>): RoundReveal;
   scores(inputs: Map<string, unknown>, players: Participant[]): Map<string, number>;
   history(inputs: Map<string, unknown>): RoundHistory;

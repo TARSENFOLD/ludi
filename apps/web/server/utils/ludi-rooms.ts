@@ -80,24 +80,24 @@ interface RoomEntry {
 export class LudiRoomService {
   private rooms = new Map<string, RoomEntry>();
   private pending = new Map<string, { token: string; ip: string }>();
-  private creations = new Map<string, { gameId: string; experience?: string; name: unknown; result: Promise<string>; code?: string }>();
+  private creations = new Map<string, { gameId: string; experience?: string; history: string; name: unknown; result: Promise<string>; code?: string }>();
   private sweepTimer: ReturnType<typeof setInterval>;
   constructor(private environment: RuleEnvironment = { now: Date.now, random: Math.random }) {
     this.sweepTimer = setInterval(() => this.sweep(), 60_000);
     this.sweepTimer.unref?.();
   }
-  async create(token: string, name: unknown, requestId: string = randomUUID(), ip = "internal", gameId = "entre-nos", experience?: "social") {
+  async create(token: string, name: unknown, requestId: string = randomUUID(), ip = "internal", gameId = "entre-nos", experience?: "social", seenQuestionIds: string[] = []) {
     this.sweep();
     const key = `${token}:${requestId}`;
     const previous = this.creations.get(key);
     if (previous) {
-      if (previous.name !== name || previous.gameId !== gameId || previous.experience !== experience)
+      if (previous.name !== name || previous.gameId !== gameId || previous.experience !== experience || previous.history !== JSON.stringify([...new Set(seenQuestionIds)].sort()))
         throw new LudiError(409, "Identificador já usado noutra criação.");
       return this.view(await previous.result, token);
     }
-    const entry: { gameId: string; experience?: string; name: unknown; result: Promise<string>; code?: string } = {
-      name, gameId, experience,
-      result: this.allocate(token, name, ip, gameId, experience),
+    const entry: { gameId: string; experience?: string; history: string; name: unknown; result: Promise<string>; code?: string } = {
+      name, gameId, experience, history: JSON.stringify([...new Set(seenQuestionIds)].sort()),
+      result: this.allocate(token, name, ip, gameId, experience, seenQuestionIds),
     };
     this.creations.set(key, entry);
     try {
@@ -108,7 +108,7 @@ export class LudiRoomService {
       throw error;
     }
   }
-  private async allocate(token: string, name: unknown, ip: string, gameId: string, experience?: "social") {
+  private async allocate(token: string, name: unknown, ip: string, gameId: string, experience?: "social", seenQuestionIds: string[] = []) {
     if (this.rooms.size + this.pending.size >= 250)
       throw new LudiError(503, "As salas estão ocupadas. Tenta novamente mais tarde.");
     if (
@@ -141,6 +141,7 @@ export class LudiRoomService {
         this.environment,
       );
       controller.join(id, name);
+      if (controller instanceof PreparedRoom) controller.rememberSeen(seenQuestionIds);
       const timer = setTimeout(() => this.expire(code), ROOM_TTL);
       timer.unref?.();
       this.rooms.set(code, {
@@ -183,7 +184,7 @@ export class LudiRoomService {
       expiresAt: room.expiresAt,
     };
   }
-  join(code: string, token: string, name: unknown) {
+  join(code: string, token: string, name: unknown, seenQuestionIds: string[] = []) {
     const room = this.room(code);
     if (!room.members.has(token)) {
       const id = randomUUID();
@@ -191,6 +192,7 @@ export class LudiRoomService {
       room.members.set(token, id);
       this.notify(code, room);
     }
+    if (room.controller instanceof PreparedRoom) room.controller.rememberSeen(seenQuestionIds);
     return this.view(code, token);
   }
   async action(code: string, token: string, action: unknown) {

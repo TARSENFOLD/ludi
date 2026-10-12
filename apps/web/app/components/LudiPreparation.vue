@@ -38,7 +38,7 @@ async function start() {
 </script>
 <template>
   <main class="ludi-page ludi-game ludi-preparation" :style="{ '--l-controls-height': `${controlsHeight}px` }">
-    <LudiHeader context="Entre Nós · Preparação" />
+    <LudiSocialHeader :view="view" />
     <p v-if="connection?.message" class="ludi-notice" role="status">{{ connection.message }}</p>
     <div class="ludi-game-layout is-lobby">
       <section class="ludi-question">
@@ -47,7 +47,7 @@ async function start() {
         <template v-if="prep.step === 'lobby'"><p class="ludi-lead">Cada pessoa entra no seu aparelho. Depois escolhem o contexto da conversa.</p><p class="ludi-small">Podem ser 2–6. O grupo mantém-se durante a partida; quem sair pode voltar pelo convite.</p></template>
         <template v-else-if="prep.step === 'context'">
           <p class="ludi-lead">{{ control ? 'Escolhe o contexto que melhor descreve vocês.' : 'Quem criou a sala está a escolher o contexto.' }}</p>
-          <fieldset v-if="control" class="ludi-options" :disabled="busy"><legend class="sr-only">Contexto da sessão</legend><label v-for="[value, label] in contexts" :key="value" :class="{ selected: selectedContext === value }"><input v-model="selectedContext" type="radio" name="context" :value="value"><span>{{ label }}</span></label></fieldset>
+          <fieldset v-if="control" class="ludi-options social-context-options" :disabled="busy"><legend class="sr-only">Contexto da sessão</legend><label v-for="[value, label] in contexts" :key="value" :class="{ selected: selectedContext === value }"><input v-model="selectedContext" type="radio" name="context" :value="value"><LudiSocialGlyph :label="label" /><span>{{ label }}</span><span class="social-context-check" aria-hidden="true">{{ selectedContext === value ? '✓' : '' }}</span></label></fieldset>
         </template>
         <template v-else-if="prep.step === 'mode'">
           <p class="ludi-lead">{{ control ? 'Escolhe o tipo de sessão.' : 'Quem criou a sala está a escolher o modo.' }}</p>
@@ -81,9 +81,13 @@ async function start() {
       <button v-else-if="control && prep.step === 'mode'" class="ludi-primary" :disabled="busy" @click="send({ type: 'mode', mode: selectedMode })">Continuar →</button>
       <template v-else-if="prep.step === 'questions' && !editor">
         <button v-if="!me?.ready" class="ludi-primary" :disabled="busy || (prep.config?.mode === 'quem-me-conhece' && !me?.count)" @click="send({ type: 'readiness', ready: true })">{{ prep.config?.mode === 'entre-nos' && !me?.count ? 'Saltar por agora · estou pronto' : 'Estou pronto' }}</button>
-        <template v-else><button v-if="view.actions.some(a => a.type === 'start')" class="ludi-primary" :disabled="busy" @click="start">Começar a conversa →</button><p v-else class="ludi-waiting" role="status">{{ control ? 'A aguardar que o grupo fique pronto.' : 'Estás pronto. Quem criou a sala começa quando todos terminarem.' }}</p><button class="ludi-text-button" :disabled="busy" @click="send({ type: 'readiness', ready: false })">Voltar às minhas perguntas</button></template>
+        <template v-else><button v-if="view.actions.some(a => a.type === 'start')" class="ludi-primary" :disabled="busy" @click="start">Começar a conversa →</button><p v-else class="ludi-waiting" role="status">A aguardar que o grupo fique pronto. Depois, qualquer pessoa pode começar.</p><button class="ludi-text-button" :disabled="busy" @click="send({ type: 'readiness', ready: false })">Voltar às minhas perguntas</button></template>
       </template>
       <p v-else class="ludi-waiting" role="status">{{ editor ? 'Guarda a pergunta no formulário para continuar.' : 'À espera de quem criou a sala.' }}</p>
     </div></footer>
   </main>
 </template>
+
+<style scoped>
+.ludi-preparation .ludi-game-layout{max-width:64rem;margin:auto}.ludi-preparation .ludi-question{border:0;background:transparent;box-shadow:none;padding:0}.social-context-options{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}.social-context-options label{position:relative;flex-direction:column;text-align:center;justify-content:center;min-height:140px;padding:1rem!important;border-radius:18px!important;box-shadow:none!important;background:#fffdf6!important}.social-context-options label.selected{background:#eaf2e4!important;border-color:#29835a!important}.social-context-check{position:absolute;top:.5rem;right:.5rem;width:23px;height:23px;border:1px solid #c2cfbc;border-radius:50%;font-size:.8rem}.selected .social-context-check{color:white;background:#287950;border-color:#287950}.ludi-preparation .ludi-primary{border-radius:999px;background:#246447}.ludi-preparation .ludi-question h1{font-size:clamp(2rem,4vw,3rem);letter-spacing:-.04em}@media(max-width:600px){.ludi-preparation .ludi-game-layout{display:flex;flex-direction:column-reverse}.ludi-preparation .social-context-options label{min-height:122px}}
+</style>

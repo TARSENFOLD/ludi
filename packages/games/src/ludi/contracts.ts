@@ -1,17 +1,20 @@
 /** Concrete wire contracts belong to games, not the SDK/session core. */
 import type { LudiView as View, LudiSession as Session, LudiAction as Action, LegalAction as Legal, Participant } from "@doot-games/sdk/ludi";
 export type { LudiMode, RuleEnvironment } from "@doot-games/sdk/ludi";
-export type LudiAction = Action<{ choice?: number; value?: number; stage?: string }>;
+export type LudiAction = Action<{ choice?: number; value?: number; stage?: string; response?: "text" | "oral"; text?: string }>;
 export type LegalAction = Legal<{ stage?: string; choices?: number[]; range?: { min: number; max: number; step: number } }>;
-export interface RoundPresentation { momentType?: string; targetName?: string; social?: boolean }
+export interface RoundPresentation { officialId?: string; momentType?: string; targetName?: string; social?: boolean }
 export interface ChoiceRound extends RoundPresentation { kind: "poll" | "guess"; prompt: string; options: string[] }
 export interface SpectrumRound { kind: "spectrum"; prompt: string; leftLabel: string; rightLabel: string }
 export interface ConversationRound extends RoundPresentation { kind: "conversation"; prompt: string }
 export type PublicRound = ChoiceRound | SpectrumRound | ConversationRound;
-export interface RoundReveal { attempts?: number; skipped?: number; targetSkipped?: boolean; authorName?: string; matches?: number; predictions?: number; duoScore?: number; counts?: number[]; correctIndex?: number; correctLabel?: string; mean?: number | null; marks?: number[] }
+export interface RoundReveal { contributions?: Array<{ playerId: string; name: string; text?: string; oral?: boolean }>; attempts?: number; skipped?: number; targetSkipped?: boolean; authorName?: string; matches?: number; predictions?: number; duoScore?: number; counts?: number[]; correctIndex?: number; correctLabel?: string; mean?: number | null; marks?: number[] }
 export interface RoundHistory { momentType?: string; customId?: string; prompt: string; options?: string[]; leftLabel?: string; rightLabel?: string; reveal: RoundReveal }
 export interface GameView {
   ticTacToe?: { board: import('./tic-tac-toe/rules').Cell[]; turn: string; outcome: import('./tic-tac-toe/rules').Mark | 'draw' | null; draws: number };
+  participation?: { answered: string[]; eligible: string[]; ready: string[] };
+  ownText?: string;
+  oralShared?: boolean;
   capacity?: { min: number; max: number };
   content?: PublicRound;
   stage?: string;
