@@ -11,6 +11,7 @@ export type PublicRound = ChoiceRound | SpectrumRound | ConversationRound;
 export interface RoundReveal { attempts?: number; skipped?: number; targetSkipped?: boolean; authorName?: string; matches?: number; predictions?: number; duoScore?: number; counts?: number[]; correctIndex?: number; correctLabel?: string; mean?: number | null; marks?: number[] }
 export interface RoundHistory { momentType?: string; customId?: string; prompt: string; options?: string[]; leftLabel?: string; rightLabel?: string; reveal: RoundReveal }
 export interface GameView {
+  ticTacToe?: { board: import('./tic-tac-toe/rules').Cell[]; turn: string; outcome: import('./tic-tac-toe/rules').Mark | 'draw' | null; draws: number };
   capacity?: { min: number; max: number };
   content?: PublicRound;
   stage?: string;

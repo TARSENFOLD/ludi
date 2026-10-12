@@ -11,6 +11,14 @@ export interface LudiCatalogEntry {
 }
 /** Shell presentation only. New games opt into a route; no implicit quiz fallback. */
 export function presentLudiGame(game: LudiManifest): LudiCatalogEntry {
+  if (game.id === 'jogo-da-velha') return {
+    game, level: 'standard', tone: 'paper', tagline: 'Três em linha. Só mais uma?',
+    links: {
+      solo: { href: '/ludi/jogo-da-velha?modo=solo', label: 'Contra o computador' },
+      'same-device': { href: '/ludi/jogo-da-velha?modo=same-device', label: 'No mesmo aparelho' },
+      room: { href: '/ludi/jogo-da-velha?modo=room', label: 'Criar sala' },
+    },
+  };
   if (game.id === "entre-nos")
     return {
       game,
