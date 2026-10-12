@@ -216,4 +216,28 @@ async function createRoom() {
   .ludi-entrance-preview { padding: 11px; margin-bottom: 12px; }
   .ludi-entrance-preview-top, .ludi-entrance-preview-note { display: none; }
 }
+
+@media (max-height: 540px) and (min-width: 741px) {
+  .ludi-entrance-page { padding-block: 12px; }
+  .ludi-entrance-page :deep(.ludi-top) { min-height: 36px; margin-bottom: 6px; }
+  .ludi-entrance-kicker { font-size: 10px; margin-bottom: 4px; }
+  .ludi-entrance-kicker :deep(.ludi-game-mark) { width: 26px; height: 26px; }
+  .ludi-entrance-intro h1 { font-size: 47px; margin-bottom: 6px; }
+  .ludi-entrance-lead { font-size: 18px; margin-bottom: 5px !important; }
+  .ludi-entrance-description { font-size: 13px; margin-bottom: 8px !important; }
+  .ludi-entrance-fields label { margin-bottom: 3px; font-size: 13px; }
+  .ludi-entrance-page .ludi-entrance-fields input { min-height: 42px; margin-bottom: 6px; padding-block: 7px; }
+  .ludi-entrance-cta { min-height: 44px; }
+  .ludi-entrance-meta { margin-top: 6px !important; font-size: 11px; }
+  .ludi-entrance-after { display: none; }
+  .ludi-entrance-more { margin-top: 0; }
+  .ludi-entrance-preview { min-height: 290px; padding: 16px; }
+  .ludi-entrance-preview-top { margin-bottom: 8px; }
+  .ludi-entrance-preview-card { transform: none; padding: 12px; border-radius: 18px; }
+  .ludi-entrance-preview-card > p { font-size: 22px; margin: 7px 0 !important; }
+  .ludi-entrance-preview-options > div { min-height: 42px; padding: 5px; }
+  .ludi-entrance-preview-options :deep(.social-glyph) { width: 28px; height: 28px; }
+  .ludi-entrance-preview-note { margin-top: 8px; }
+}
+
 </style>
