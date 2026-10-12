@@ -53,20 +53,20 @@ async function createRoom() {
         <p class="ludi-entrance-description">Escolham, adivinhem e partilhem histórias. Há sempre algo novo para descobrir.</p>
       </section>
 
-      <!-- Decorative sample from the real question bank; not a playable round. -->
+      <!-- Illustrative demo, not drawn from the server-only question bank and not playable. -->
       <div class="ludi-entrance-preview" aria-hidden="true">
         <div class="ludi-entrance-preview-top">
-          <span>UM POUCO DO QUE VEM AÍ</span>
+          <span>PRÉVIA ILUSTRATIVA</span>
           <div class="ludi-entrance-preview-players">
             <span>F</span><span>B</span><span>C</span>
           </div>
         </div>
         <div class="ludi-entrance-preview-card">
           <span class="ludi-entrance-preview-stage"><span class="ludi-entrance-preview-spark">✳</span> Uma escolha rápida</span>
-          <p>O teu sábado ideal começa como?</p>
+          <p>Se pudesses escolher uma surpresa para amanhã?</p>
           <div class="ludi-entrance-preview-options">
-            <div><LudiSocialGlyph label="Dormir até mais tarde" />Sem despertador</div>
-            <div class="is-selected"><LudiSocialGlyph label="Passeio" />Com um passeio <span>✓</span></div>
+            <div><LudiSocialGlyph label="descanso" />Ficar sossegado</div>
+            <div class="is-selected"><LudiSocialGlyph label="passeio" />Sair a explorar <span>✓</span></div>
           </div>
         </div>
         <div class="ludi-entrance-preview-note"><span aria-hidden="true">✦</span> Cada resposta traz uma descoberta.</div>
