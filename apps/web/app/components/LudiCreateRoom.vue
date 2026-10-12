@@ -2,9 +2,10 @@
 import type { LudiView } from "@doot-games/games/ludi/contracts";
 import { ludiActionId } from '../utils/ludi-session'
 import '../assets/ludi.css'
-const props = defineProps<{ gameId: 'entre-nos' | 'na-mesma-onda'; experience?: 'social' }>()
+const props = defineProps<{ gameId: 'entre-nos' | 'na-mesma-onda' | 'jogo-da-velha'; experience?: 'social' }>()
 const onda = computed(() => props.gameId === 'na-mesma-onda')
-const title = computed(() => onda.value ? 'Na Mesma Onda' : 'Entre Nós')
+const velha = computed(() => props.gameId === 'jogo-da-velha')
+const title = computed(() => velha.value ? 'Jogo da Velha' : onda.value ? 'Na Mesma Onda' : 'Entre Nós')
 useHead(() => ({ title: `${title.value} · Ludi`, htmlAttrs: { lang: 'pt-PT' } }))
 const name = ref('')
 const busy = ref(false)
@@ -28,9 +29,9 @@ async function createRoom() {
     <form class="ludi-narrow ludi-setup" :aria-busy="busy" @submit.prevent="createRoom">
       <div class="ludi-form-heading">
         <LudiGameMark :game="gameId" />
-        <p class="ludi-eyebrow">{{ onda ? '2–6 pessoas · cerca de 6 min' : props.experience ? '2–6 pessoas · cerca de 10–15 min' : '2 pessoas · cerca de 5 min' }}</p>
-        <h1>{{ onda ? 'Estão na mesma onda?' : props.experience ? 'Quem se junta?' : 'Uma pausa a dois.' }}</h1>
-        <p class="ludi-lead">{{ onda ? 'Seis temas, uma escala. Cada um escolhe, depois descobrem a sintonia do grupo.' : props.experience ? 'Cria a sala e envia o convite. Depois escolhem o contexto e preparam a conversa.' : 'Cria a sala, envia o convite. Quatro rondas para descobrir o que vos liga.' }}</p>
+        <p class="ludi-eyebrow">{{ velha ? '2 pessoas · cerca de 2 min' : onda ? '2–6 pessoas · cerca de 6 min' : props.experience ? '2–6 pessoas · cerca de 10–15 min' : '2 pessoas · cerca de 5 min' }}</p>
+        <h1>{{ velha ? 'Quem faz três em linha?' : onda ? 'Estão na mesma onda?' : props.experience ? 'Quem se junta?' : 'Uma pausa a dois.' }}</h1>
+        <p class="ludi-lead">{{ velha ? 'Cria a sala e envia o convite. Cada pessoa joga no seu aparelho, uma jogada de cada vez.' : onda ? 'Seis temas, uma escala. Cada um escolhe, depois descobrem a sintonia do grupo.' : props.experience ? 'Cria a sala e envia o convite. Depois escolhem o contexto e preparam a conversa.' : 'Cria a sala, envia o convite. Quatro rondas para descobrir o que vos liga.' }}</p>
       </div>
       <p v-if="onda" class="ludi-small">Sem resposta certa e sem pressa. A dois, contam os pontos da dupla; em grupo, a proximidade à média.</p>
       <label for="name">Como te chamas?</label>

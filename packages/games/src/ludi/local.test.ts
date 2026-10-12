@@ -72,7 +72,7 @@ describe("local contract proof, without Vue or relay", () => {
       ),
     ).toEqual(["entre-nos", "na-mesma-onda"]);
     expect(discoverGames({ mode: "room", players: 3 }).map(g => g.id)).toEqual(["entre-nos", "na-mesma-onda"]);
-    expect(discoverGames({ mode: "same-device", minutes: 5 })).toEqual([]);
+    expect(discoverGames({ mode: "same-device", minutes: 5 }).map(g => g.id)).toEqual(["jogo-da-velha"]);
     expect(discoverGames({ players: 1 })[0]?.modes.map((m) => m.mode)).toEqual(["solo"]);
     expect(discoverGames({ mode: "same-device", players: 6, minutes: 8 })).toHaveLength(1);
   });

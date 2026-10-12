@@ -2,6 +2,17 @@ import type { LudiManifest, LudiMode, LudiVibe } from "@doot-games/sdk/ludi";
 
 export const ludiCatalog: LudiManifest[] = [
   {
+    id: 'jogo-da-velha', name: 'Jogo da Velha', version: '0.2.0',
+    description: 'Três em linha. Desafia o computador ou outra pessoa, aqui ou à distância.',
+    modes: [
+      { mode: 'solo', execution: 'local', players: { min: 1, max: 1 }, duration: { min: 1, typical: 2, max: 5 } },
+      { mode: 'same-device', execution: 'local', players: { min: 2, max: 2 }, duration: { min: 1, typical: 2, max: 5 } },
+      { mode: 'room', execution: 'remote', players: { min: 2, max: 2 }, duration: { min: 1, typical: 2, max: 5 } },
+    ],
+    vibes: ['thinking', 'competitive', 'chill'], capabilities: ['score', 'turn-order', 'reconnect'],
+    access: { tier: 'free', guestAccess: 'included' }, contentBundle: { id: 'jogo-da-velha', version: '1', delivery: 'local' },
+  },
+  {
     id: "entre-nos",
     name: "Entre Nós",
     version: "0.2.0",

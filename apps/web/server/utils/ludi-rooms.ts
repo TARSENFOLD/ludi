@@ -1,3 +1,4 @@
+import { TicTacToeController, ticTacToeDefinition } from '@doot-games/games/ludi/tic-tac-toe/controller';
 import { randomBytes, randomUUID } from "node:crypto";
 import {
   RoomRuntime,
@@ -22,7 +23,7 @@ const EXPIRED = "A sala terminou ou o servidor foi reiniciado. Cria uma nova sal
 async function createAuthority(
   code: string,
   environment: RuleEnvironment,
-  definition: GameDefinition,
+  definition: { manifest: GameDefinition["manifest"]; rounds: unknown[] },
 ): Promise<RoundAuthority> {
   const relay = new MemoryRelay();
   const runtime = new RoomRuntime({
@@ -67,7 +68,7 @@ async function createAuthority(
   };
 }
 interface RoomEntry {
-  controller: MatchController | PreparedRoom;
+  controller: MatchController | PreparedRoom | TicTacToeController;
   members: Map<string, string>;
   expiresAt: number;
   createdByIp: string;
@@ -127,13 +128,13 @@ export class LudiRoomService {
       code = randomBytes(4).toString("hex").toUpperCase();
     } while (this.rooms.has(code) || this.pending.has(code));
     this.pending.set(code, { token, ip });
-    let controller: MatchController | PreparedRoom | undefined;
+    let controller: MatchController | PreparedRoom | TicTacToeController | undefined;
     try {
-      const definition = createRoomDefinition(gameId, this.environment);
+      const definition = gameId === 'jogo-da-velha' ? ticTacToeDefinition : createRoomDefinition(gameId, this.environment);
       const id = randomUUID();
       if (experience && gameId !== 'entre-nos') throw new LudiError(400, 'Experiência indisponível.');
-      controller = experience === 'social' ? new PreparedRoom(id, this.environment, definition => createAuthority(code, this.environment, definition), Number(process.env.LUDI_CUSTOM_QUESTION_LIMIT) || 50) : new MatchController(
-        definition,
+      controller = gameId === 'jogo-da-velha' ? new TicTacToeController('room', await createAuthority(code, this.environment, definition), id) : experience === 'social' ? new PreparedRoom(id, this.environment, definition => createAuthority(code, this.environment, definition), Number(process.env.LUDI_CUSTOM_QUESTION_LIMIT) || 50) : new MatchController(
+        definition as GameDefinition,
         "room",
         await createAuthority(code, this.environment, definition),
         id,
