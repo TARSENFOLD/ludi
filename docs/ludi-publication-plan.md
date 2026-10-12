@@ -1,6 +1,6 @@
 # Publicação e operação do Ludi
 
-Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Interface atual integrada no PR #4; Na Mesma Onda integrado no PR #5 e publicado em 11 out 2026. Entre Nós social integrado no PR #6 e publicado em 11 out 2026. Imagem em execução: `ludi:88ef8a7753c6bd4a9781bbe94b04d15b86e7d590`.
+Publicado em **https://ludi.usepdc.com** em 10 out 2026, na VPS Hetzner existente, partilhada com PDC. Após o adiamento inicial, o utilizador retomou a publicação e disponibilizou o painel Cloudflare. Fundação integrada no PR #1; perfil público e Compose integrados no PR #2 (`585cd6d`). Interface atual integrada no PR #4; Na Mesma Onda integrado no PR #5 e publicado em 11 out 2026. Entre Nós social integrado no PR #6 e publicado em 11 out 2026. Jogo da Velha integrado no PR #7 e publicado em 12 out 2026. Imagem em execução: `ludi:7c99cf171a4df8b08ab3291ee54184adf38aea98`.
 
 ## Infraestrutura existente verificada
 
@@ -88,3 +88,11 @@ Projeto Compose separado `ludi`, diretório `~/ludi` do utilizador de deploy (mo
 6. Em falha, restaurar o tag anterior em `LUDI_IMAGE` e repetir `up -d --wait`. Na primeira publicação, sem versão anterior, parar apenas o projeto Ludi. Preservar o volume. Não usar limpezas globais ou alterar a stack PDC.
 
 Reiniciar/atualizar Ludi invalida salas ativas nesta versão. O volume SQLite preserva apenas estado legado; não é backup das partidas. As salas duram no máximo oito horas; esta entrega usa uma única instância e não tem persistência durável. Não criar uma nova VPS ou conta de alojamento.
+
+## Publicação de Jogo da Velha — 12 out 2026
+
+- [PR #7](https://github.com/TARSENFOLD/ludi/pull/7) integrado em `7c99cf171a4df8b08ab3291ee54184adf38aea98`, após autorização de publicação.
+- [Release CI](https://github.com/TARSENFOLD/ludi/actions/runs/38188844346): check e image aprovados. ZIP verificado localmente e na VPS: SHA-256 `262651ea5d4825fe01b0cee22f0365af9255edb92d6ed21a5f05b05b767daac1`.
+- Apenas Ludi foi recriado e ficou saudável. Imagem anterior `88ef8a7753c6bd4a9781bbe94b04d15b86e7d590` preservada. Serviços PDC mantiveram os instantes de arranque e healthchecks.
+- Prova pública HTTPS: catálogo, página do jogo, licença MIT, isolamento legado, cookies Secure/HttpOnly, partida online completa, vitória, retoma da identidade e tabuleiro, snapshot SSE e revanche com placar preservado aprovados.
+- Disponível em https://ludi.usepdc.com/ludi/jogo-da-velha. Teste físico em dois aparelhos ainda não realizado.
