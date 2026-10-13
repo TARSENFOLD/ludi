@@ -18,6 +18,13 @@ async function setup(count = 2, mode: SocialMode = 'entre-nos') {
 }
 const question = (prompt = 'Só o autor conhece esta pergunta privada') => ({ id: key(), prompt, options: ['A','B','C','D'], correctIndex: 2, status:'submitted' as const });
 describe('social preparation over real RoomRuntime', () => {
+  it('normalizes history for creation retries and never exposes browser history in a view', async () => {
+    const s=new LudiRoomService();services.push(s);const request=key();
+    const first=await s.create('history-person','Ana',request,'internal','entre-nos','social',['en-choice-001','en-story-001']);
+    const retry=await s.create('history-person','Ana',request,'internal','entre-nos','social',['en-story-001','en-choice-001','en-choice-001']);
+    expect(retry.code).toBe(first.code);expect(JSON.stringify(retry)).not.toContain('en-choice-001');
+    await expect(s.create('history-person','Ana',request,'internal','entre-nos','social',[])).rejects.toMatchObject({status:409});
+  });
   it('keeps own questions private even from creator and rehydrates readiness, drafts and ownership', async () => {
     const {s,code,tokens,view,prep} = await setup();
     const q = question(); const events: LudiView[] = [];
@@ -46,6 +53,36 @@ describe('social preparation over real RoomRuntime', () => {
     await expect(s.prepare(code,tokens[1]!,{...cmd,id:key()})).rejects.toMatchObject({status:409});
     await expect(prep(1,{type:'back'})).rejects.toMatchObject({status:403});
   });
+  it('accepts concurrent independent edits and readiness, but rejects stale own edits and configuration', async () => {
+    const {s,code,tokens,view,prep,send} = await setup();
+    const revision=view().revision;
+    const cmds=[0,1].map(i=>({id:key(),revision,type:'save-question',question:question(`Privada ${i}`)}));
+    await Promise.all(cmds.map((c,i)=>s.prepare(code,tokens[i]!,c)));
+    expect(view().preparation!.ownQuestions).toHaveLength(1); expect(view(1).preparation!.ownQuestions).toHaveLength(1);
+    await expect(s.prepare(code,tokens[0]!,{...cmds[0],id:key()})).rejects.toMatchObject({status:409});
+    const readyRevision=view().revision;
+    await Promise.all(tokens.map(t=>s.prepare(code,t,{id:key(),revision:readyRevision,type:'readiness',ready:true})));
+    expect(view(1).actions[0]?.type).toBe('start');
+    await send(1,'start'); expect(view().phase).toBe('active');
+  });
+  it('keeps conversation text private across SSE and reconnect until the whole roster participates', async () => {
+    const {s,code,tokens,view,prep,send}=await setup(4);
+    for(let i=0;i<4;i++) await prep(i,{type:'readiness',ready:true}); await send(1,'start');
+    while(view().content?.kind !== 'conversation') {
+      for(let i=0;i<4;i++){const a=view(i).actions.find(a=>a.type==='answer'); if(a) await send(i,'skip');}
+      if(view().reveal) for(let i=0;i<4;i++)await send(i,'ready');
+    }
+    const events:LudiView[]=[]; const close=s.subscribe(code,tokens[0]!,v=>events.push(v),()=>{});
+    await send(1,'answer',{response:'text',text:'PRIVATE REMOTE STORY'});
+    expect(s.join(code,tokens[1]!, 'ignored').ownText).toBe('PRIVATE REMOTE STORY');
+    await send(0,'skip'); await send(2,'answer',{response:'oral'});
+    expect(view().roundState).toBe('open'); expect(JSON.stringify(events)).not.toContain('PRIVATE REMOTE STORY');
+    expect(view().participation?.answered).toHaveLength(3);
+    await send(3,'skip'); expect(view().reveal?.contributions?.[0]?.text).toBe('PRIVATE REMOTE STORY');
+    for(let i=0;i<3;i++)await send(i,'ready');
+    expect(view().roundState).toBe('reveal'); expect(view(3).actions[0]?.type).toBe('ready');
+    s.join(code,tokens[3]!, 'ignored'); await send(3,'ready'); expect(view().roundState).toBe('open');close();
+  });
   it('requires one submitted question per person only in custom mode; drafts do not count', async () => {
     const {prep,view,send} = await setup(2,'quem-me-conhece');
     const q = question(); await prep(0,{type:'save-question',question:{...q,status:'draft'}});
@@ -65,13 +102,13 @@ describe('social preparation over real RoomRuntime', () => {
     for(let guard=0;view().phase==='active' && guard<100;guard++) {
       const current=view();
       if(!prompts.includes(current.content!.prompt)) prompts.push(current.content!.prompt);
-      if(current.content!.kind==='conversation') { await send(1,'skip'); continue; }
+
       for(let i=0;i<count;i++) {
         const v=view(i), a=v.actions.find(a=>a.type==='answer');
-        if(a) { await send(i,'answer',{choice:0,...(a.stage?{stage:a.stage}:{})}); expect(view(i).ownChoice).toBe(0); expect(view(i).reveal).toBeUndefined(); }
+        if(a) { await send(i,'answer',current.content!.kind === 'conversation' ? {response:'text',text:`História de Pessoa ${i}`} : {choice:0,...(a.stage?{stage:a.stage}:{})}); if(view(i).roundState !== 'reveal') expect(view(i).reveal).toBeUndefined(); }
       }
-      if(view().roundState==='locked') { await send(0,'reveal'); expect(view().reveal).toBeDefined(); }
-      if(view().roundState==='reveal') await send(0,view().round===view().totalRounds-1?'finish':'next');
+
+      if(view().roundState==='reveal') for(let i=0;i<count;i++) await send(i,'ready');
     }
     expect(view().phase).toBe('results'); expect(view().summary).toBeDefined(); expect(view().scores).toBeUndefined(); expect(view().history).toHaveLength(10);
     const v=view(), request={id:key(),match:v.match,round:v.round,type:'continue'};
@@ -85,10 +122,10 @@ describe('social preparation over real RoomRuntime', () => {
     const {s,code,tokens,view,prep,send} = await setup(2,'quem-me-conhece');
     for(let i=0;i<2;i++){await prep(i,{type:'save-question',question:question()});await prep(i,{type:'readiness',ready:true});}
     await send(0,'start');
-    for(let r=0;r<2;r++){for(let i=0;i<2;i++)if(view(i).actions.some(a=>a.type==='answer'))await send(i,'answer',{choice:0});await send(0,'reveal');await send(0,r===1?'finish':'next');}
+    for(let r=0;r<2;r++){for(let i=0;i<2;i++)if(view(i).actions.some(a=>a.type==='answer'))await send(i,'answer',{choice:0});await send(0,'ready');await send(1,'ready');}
     const roster=view().players;
     await send(0,'replay');expect(view().match).toBe(2);expect(view().players).toEqual(roster);expect(view().ownChoice).toBeUndefined();
-    for(let r=0;r<2;r++){for(let i=0;i<2;i++)if(view(i).actions.some(a=>a.type==='answer'))await send(i,'skip');await send(0,'reveal');await send(0,r===1?'finish':'next');}
+    for(let r=0;r<2;r++){for(let i=0;i<2;i++)if(view(i).actions.some(a=>a.type==='answer'))await send(i,'skip');await send(0,'ready');await send(1,'ready');}
     await prep(0,{type:'configure-again'});expect(view().phase).toBe('preparation');expect(view().match).toBe(3);expect(view().preparation!.ownQuestions).toHaveLength(1);
     expect(()=>s.join(code,'new-person','Nova')).toThrow();
     expect(s.join(code,tokens[1]!, 'B').players).toEqual(roster);

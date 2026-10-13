@@ -4,7 +4,9 @@ import { actionEnvelopeSchema, participantNameSchema, z, type Participant, type 
 import { MatchController, LudiError, type GameDefinition } from './controller';
 import { getLudiManifest } from './catalog';
 import type { LudiView, PreparationView, SocialConfig, SessionRelationship } from './contracts';
+import { socialQuestions } from './content/entre-nos-social.server';
 import { createSocialComposer, type AuthoredQuestion } from './social-session.server';
+const officialIds = new Set(socialQuestions.map(q => q.id));
 const key = z.string().regex(/^[\w-]{8,80}$/);
 const context = z.enum(['strangers', 'friends', 'couple', 'group', 'close', 'random']);
 const mode = z.enum(['entre-nos', 'quem-me-conhece']);
@@ -30,6 +32,9 @@ export class PreparedRoom {
   private config: SocialConfig | null = null;
   private revision = 0;
   private matchNumber = 1;
+  private configurationRevision = 0;
+  private participantRevision = new Map<string, number>();
+  private seenOfficial = new Set<string>();
   private match?: MatchController;
   private queue: Promise<void> = Promise.resolve();
   private seen = new Map<string, string>();
@@ -39,7 +44,10 @@ export class PreparedRoom {
   private compose: ReturnType<typeof createSocialComposer>;
   constructor(private creator: string, private env: RuleEnvironment, private authority: (definition: GameDefinition) => Promise<RoundAuthority>, private limit = 50) {
     this.limit = Math.max(1, Math.min(100, Math.floor(limit) || 50));
-    this.compose = createSocialComposer(env);
+    this.compose = createSocialComposer(env, () => this.seenOfficial);
+  }
+  rememberSeen(ids: string[]) {
+    if (!this.match) for (const id of ids) if (officialIds.has(id)) this.seenOfficial.add(id);
   }
   get phase() { return this.match?.phase ?? 'lobby'; }
   hasPlayer(id: string) { return this.players.some(p => p.id === id); }
@@ -68,7 +76,10 @@ export class PreparedRoom {
     if (!parsed.success) throw new LudiError(400, 'Verifica a pergunta, as opções e a resposta certa.');
     const a = parsed.data, fingerprint = `prepare:${JSON.stringify(a)}`;
     if (this.repeated(id, a.id, fingerprint)) return;
-    if (a.revision !== this.revision) throw new LudiError(409, 'A sala foi atualizada. Confirma o estado e tenta novamente.');
+    const personal = ['save-question', 'delete-question', 'readiness'].includes(a.type);
+    const minimumRevision = Math.max(this.configurationRevision, this.participantRevision.get(id) ?? 0);
+    if (a.revision > this.revision || (personal ? a.revision < minimumRevision : a.revision !== this.revision))
+      throw new LudiError(409, 'A preparação mudou. Confirma o estado e tenta novamente.');
     if (a.type === 'configure-again') {
       if (id !== this.creator || this.match?.phase !== 'results') throw new LudiError(409, 'Termina a partida para mudar o contexto.');
       this.matchNumber = this.match.playerView(id).match + 1;
@@ -108,6 +119,8 @@ export class PreparedRoom {
       }
     }
     this.remember(`${id}:${a.id}`, fingerprint); this.revision++;
+    if (personal) this.participantRevision.set(id, this.revision);
+    else this.configurationRevision = this.revision;
   }); }
   dispatch(id: string, raw: unknown) { return this.enqueue(async () => {
     if (!this.hasPlayer(id)) throw new LudiError(403, 'Entra na sala.');
@@ -116,14 +129,14 @@ export class PreparedRoom {
     const a = parsed.data, fingerprint = `match:${JSON.stringify(a)}`;
     if (this.repeated(id, a.id, fingerprint)) return;
     if (!this.match) {
-      if (!actionEnvelopeSchema.strict().safeParse(raw).success || a.type !== 'start' || a.match !== this.matchNumber || a.round !== 0 || id !== this.creator || !this.canStart()) throw new LudiError(409, 'A sala ainda não está pronta para começar.');
+      if (!actionEnvelopeSchema.strict().safeParse(raw).success || a.type !== 'start' || a.match !== this.matchNumber || a.round !== 0 || !this.canStart()) throw new LudiError(409, 'A sala ainda não está pronta para começar.');
       this.starting = true;
       try {
         const definition = this.compose(this.config!, this.players, [...this.questions.values()]);
         const authority = await this.authority(definition);
         if (this.disposed) { authority.dispose(); throw new LudiError(410, 'A sala terminou.'); }
         const match = new MatchController(definition, 'room', authority, this.creator, this.env, this.matchNumber);
-        try { for (const p of this.players) match.join(p.id, p.name); await match.dispatch(id, raw); }
+        try { for (const p of this.players) match.join(p.id, p.name); await match.dispatch(this.creator, raw); }
         catch (e) { match.dispose(); throw e; }
         this.match = match; this.rosterSealed = true;
       } finally { this.starting = false; }
@@ -137,7 +150,7 @@ export class PreparedRoom {
     return {
       context: { mode: 'room', execution: 'remote', surface: id === this.creator ? 'primary' : 'participant', locale: 'pt-PT', participantId: id, permissions: { control: id === this.creator } },
       gameId: manifest.id, title: manifest.name, revision: this.revision, match: this.matchNumber, phase: 'preparation', round: 0, roundState: 'ready', totalRounds: 0,
-      players: this.players.map(p => ({ ...p })), actions: id === this.creator && this.canStart() ? [{ type: 'start', label: 'Começar a conversa' }] : [],
+      players: this.players.map(p => ({ ...p })), actions: this.canStart() ? [{ type: 'start', label: 'Começar a conversa' }] : [],
       preparation: { step: this.step, config: this.config ? { ...this.config } : null, context: this.context, limit: this.limit,
         progress: this.players.map(p => ({ playerId: p.id, count: [...this.questions.values()].filter(q => q.authorPlayerId === p.id && q.status !== 'draft').length, ready: this.ready.has(p.id) })),
         ownQuestions: [...this.questions.values()].filter(q => q.authorPlayerId === id).map(q => ({ id: q.id, prompt: q.prompt, options: [...q.options], correctIndex: q.correctIndex, status: q.status })),

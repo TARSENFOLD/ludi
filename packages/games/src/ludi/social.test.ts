@@ -53,13 +53,25 @@ describe('social rounds: headless rules and privacy', () => {
     await m.dispatch('b', action('skip')); await m.dispatch('c', action('skip')); await m.dispatch('a', action('skip')); await m.dispatch('a', action('reveal'));
     expect(m.playerView('a').reveal).toEqual({ targetSkipped: true, skipped: 3, authorName: 'Ana' });
   });
-  it('supports conversation without answer payload and allows any participant to pass', async () => {
-    const m = match(socialRound({ id: 's', type: 'story', prompt: 'Conta uma história.' }, players));
-    await m.dispatch('a', action('start'));
-    await expect(m.dispatch('b', action('answer', { choice: 0 }))).rejects.toThrow();
-    await m.dispatch('b', action('skip'));
-    expect(m.playerView('a').phase).toBe('results'); expect(m.playerView('a').scores).toBeUndefined();
-    expect(m.playerView('a').history?.[0]?.reveal).toEqual({ skipped: 1 });
+  it('keeps text private, treats passing individually and reveals only on quorum', async () => {
+    const m = new MatchController({ manifest: getLudiManifest('entre-nos'), rounds: [socialRound({ id:'s', type:'story', prompt:'Conta uma história.' }, players)], scoring:false, collective:true }, 'room', new LocalRoundAuthority(1), 'a', env);
+    players.forEach(p => m.join(p.id,p.name)); await m.dispatch('a',action('start'));
+    for (const extra of [{choice:0},{response:'text',text:''},{response:'text',text:'x'.repeat(501)},{response:'text',text:'bad\u0000'},{response:'oral',text:'extra'}]) await expect(m.dispatch('b',action('answer',extra))).rejects.toThrow();
+    await m.dispatch('b',action('skip'));
+    expect(m.playerView('a').phase).toBe('active'); expect(m.playerView('a').roundState).toBe('open');
+    const cmd=action('answer',{response:'text',text:'PRIVATE story'});
+    await m.dispatch('c',cmd); await m.dispatch('c',cmd);
+    expect(JSON.stringify(m.playerView('a'))).not.toContain('PRIVATE story');
+    expect(m.playerView('c').ownText).toBe('PRIVATE story');
+    await expect(m.dispatch('c',action('answer',{response:'text',text:'second'}))).rejects.toThrow();
+    await m.dispatch('a',action('answer',{response:'oral'}));
+    expect(m.playerView('a').reveal).toEqual({skipped:1,contributions:[{playerId:'a',name:'Ana',oral:true},{playerId:'c',name:'Carla',text:'PRIVATE story'}]});
+    await expect(m.dispatch('a',action('finish'))).rejects.toThrow();
+    const ready=action('ready'); await m.dispatch('a',ready); await m.dispatch('a',ready);
+    await m.dispatch('b',action('ready')); expect(m.playerView('c').phase).toBe('active');
+    expect(m.playerView('c').participation?.ready).toEqual(['a','b']);
+    await m.dispatch('c',action('ready')); expect(m.playerView('a').phase).toBe('results');
+    expect(m.playerView('a').history?.[0]?.reveal.contributions?.[1]?.text).toBe('PRIVATE story');
   });
   it('materializes stable choices, contexts and recent-history exclusions using injected RNG', () => {
     const trace = () => {

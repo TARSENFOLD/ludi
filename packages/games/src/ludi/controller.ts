@@ -13,6 +13,8 @@ export interface GameDefinition {
   nextRounds?: (reason?: 'replay' | 'continue') => LudiRound[];
   canContinue?: () => boolean;
   scoring?: boolean;
+  /** Opt-in collective progression. Other games retain their existing controls. */
+  collective?: boolean;
   summarize?: (history: RoundHistory[]) => SocialSummary;
 }
 export class LudiError extends Error {
@@ -30,6 +32,7 @@ export class MatchController {
   private revision = 0;
   private match = 1;
   private handoff = false;
+  private ready = new Set<string>();
   private turn = 0;
   private seen = new Map<string, string>();
   private queue: Promise<void> = Promise.resolve();
@@ -99,7 +102,7 @@ export class MatchController {
         ? [{ type: "start", label: "Começar partida" }]
         : [];
     }
-    if (phase === "results") return control ? [
+    if (phase === "results") return (control || this.game.collective) ? [
       ...(this.game.canContinue?.() ? [{ type: 'continue' as const, label: 'Mais 5' }] : []),
       { type: 'replay', label: 'Jogar novamente' },
     ] : [];
@@ -113,6 +116,8 @@ export class MatchController {
       ];
     }
     if (round.state === "locked" && control) return [{ type: "reveal", label: "Ver resultado" }];
+    if (round.state === "reveal" && this.game.collective)
+      return this.ready.has(id) ? [] : [{ type: 'ready', label: round.index === this.game.rounds.length - 1 ? 'Ver o nosso resumo' : 'Continuar' }];
     if (round.state === "reveal" && control)
       return this.advanceAction();
     return [];
@@ -163,7 +168,13 @@ export class MatchController {
         this.beginRound();
         break;
       case "ready":
-        this.handoff = false;
+        if (this.game.collective && this.authority.state().round.state === 'reveal') {
+          this.ready.add(id);
+          if (this.players.every(p => this.ready.has(p.id))) {
+            if (this.authority.state().round.index === this.game.rounds.length - 1) await this.authority.finish(this.scores());
+            else { this.authority.next(); this.authority.open(); this.beginRound(); }
+          }
+        } else this.handoff = false;
         break;
       case 'skip': {
         const index = this.authority.state().round.index;
@@ -206,7 +217,7 @@ export class MatchController {
     this.authority.submit(index, id, input);
     if (this.roundAt(index).isComplete(this.roundContext(index))) {
       this.authority.lock();
-      if (this.mode !== 'room') this.authority.reveal();
+      if (this.mode !== 'room' || this.game.collective) this.authority.reveal();
     } else if (this.mode === 'same-device') { this.turn++; this.handoff = true; }
   }
   private closeConversation() {
@@ -222,6 +233,7 @@ export class MatchController {
     } else await this.authority.finish(this.scores());
   }
   private beginRound() {
+    this.ready.clear();
     this.turn = 0;
     this.handoff = this.mode === "same-device";
   }
@@ -270,6 +282,10 @@ export class MatchController {
     if (this.handoff) view.handoff = { name: this.players[this.turn]?.name ?? "" };
     if (phase === "active" && !this.handoff) {
       const ctx = this.roundContext(round.index);
+      if (this.game.collective) view.participation = {
+        answered: this.players.filter(p => ctx.inputs.has(p.id)).map(p => p.id),
+        eligible: [...r.eligiblePlayers(ctx)], ready: [...this.ready],
+      };
       view.content = r.publicContent(ctx, id);
       view.stage = r.stage(ctx);
       const input = this.authority.inputsFor(round.index).get(id);

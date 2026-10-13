@@ -54,6 +54,20 @@ if (route.query.game === 'onda') {
   if (view.phase === 'results' || view.roundState === 'reveal') view.scores = view.players.map(p => ({ ...p, score: view.phase === 'results' ? 2400 : 800 }));
   if (view.phase === 'results') view.history = [{ ...spectrum, reveal }];
 }
+// Social fixtures use the actual renderer, with synthetic content only.
+if (route.query.game === 'social') {
+  view.totalRounds = 10; view.round = 2;
+  view.players = Array.from({length:Number(route.query.players || 4)},(_,i)=>({id:`p${i}`,name:['Alexandra','Tomás','Inês','João','Marta','Rui'][i]!}));
+  view.content = {kind:'poll',social:true,momentType:'quick-choice',prompt:'Num sábado livre, o que te sabe melhor?',options:['Dormir até mais tarde','Passear sem plano','Estar com amigos','Ficar em casa em paz']};
+  view.participation={answered:['p1'],eligible:view.players.map(p=>p.id),ready:[]};
+  view.actions=[{type:'answer',label:'Confirmar resposta'},{type:'skip',label:'Passar'}];
+  if(state==='story')view.content={kind:'conversation',social:true,momentType:'story',prompt:'Conta uma pequena vitória tua desta semana.'};
+  if(state==='confirmed'){view.actions=[];view.ownChoice=1;view.participation.answered.push(actor)}
+  if(state==='reveal'){view.roundState='reveal';view.reveal={counts:[1,2,1,0]};view.ownChoice=1;view.actions=[{type:'ready',label:'Continuar'}]}
+  if(state==='story-reveal'){view.content={kind:'conversation',social:true,momentType:'story',prompt:'Conta uma pequena vitória tua desta semana.'};view.roundState='reveal';view.reveal={contributions:[{playerId:'p0',name:'Alexandra',text:'Consegui terminar algo que andava a adiar há dias.'},{playerId:'p1',name:'Tomás',oral:true}],skipped:2};view.actions=[{type:'ready',label:'Continuar'}]}
+  if(state==='results'){view.phase='results';delete view.content;delete view.scores;view.summary={inTune:3,divided:2,predictions:4,correctPredictions:2,customUsed:0,customAttempts:0,customMatches:0,customRemaining:0,skipped:1};view.actions=[{type:'continue',label:'Mais 5'},{type:'replay',label:'Jogar novamente'}]}
+  if(state==='preparation'){view.phase='preparation';view.preparation={step:'context',config:null,progress:[],ownQuestions:[],limit:50};view.actions=[]}
+}
 const connection: ConnectionState = { state: state === 'ended' ? 'ended' : state === 'reconnecting' ? 'reconnecting' : 'connected', message: state === 'ended' ? 'A sala terminou ou o servidor foi reiniciado. Cria uma nova sala.' : state === 'reconnecting' ? 'A restabelecer a ligação. A tua resposta confirmada continua guardada.' : '' }
 const fixture: LudiSession = { observe(listener) { listener(view); return () => {} }, availableActions: () => view.actions, async send() { throw new Error('Erro de teste: não foi possível confirmar. A tua seleção foi preservada. Tenta novamente.') }, disconnect() {} }
 </script>

@@ -1,3 +1,4 @@
+import { rememberQuestion } from './ludi-question-history';
 import type { LudiAction, LudiSession, LudiView, PreparationAction } from "@doot-games/games/ludi/contracts";
 
 export interface ConnectionState {
@@ -16,6 +17,7 @@ export class RoomSession implements LudiSession {
     private onConnection: (status: ConnectionState) => void,
   ) {
     this.view = initial;
+    rememberQuestion(initial);
     this.connectEvents();
   }
   private connectEvents() {
@@ -61,6 +63,7 @@ export class RoomSession implements LudiSession {
     // SSE can overtake HTTP; ignore old/duplicate snapshots from either path.
     if (this.closed || view.revision <= this.view.revision) return;
     this.view = view;
+    rememberQuestion(view);
     for (const listener of this.listeners) listener(structuredClone(view));
   }
   private expired() {

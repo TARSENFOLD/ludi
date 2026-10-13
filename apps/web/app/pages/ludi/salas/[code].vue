@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LudiView } from "@doot-games/games/ludi/contracts";
+import { seenQuestionIds } from '../../../utils/ludi-question-history'
 import { RoomSession, type ConnectionState } from '../../../utils/ludi-session'
 import '../../../assets/ludi.css'
 useHead({ title: 'Sala · Ludi', htmlAttrs: { lang: 'pt-PT' } })
@@ -23,7 +24,7 @@ async function resume() {
 }
 async function join() {
   busy.value = true; error.value = ''
-  try { attach(await $fetch<LudiView>(`/api/ludi/rooms/${code.value}/join`, { method: 'POST', body: { name: name.value } })) }
+  try { attach(await $fetch<LudiView>(`/api/ludi/rooms/${code.value}/join`, { method: 'POST', body: { name: name.value, seenQuestionIds: seenQuestionIds() } })) }
   catch (e) {
     const err = e as { statusCode?: number; data?: { message?: string } }
     error.value = err.data?.message ?? 'Não foi possível entrar. Tenta novamente.'

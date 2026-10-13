@@ -182,15 +182,14 @@ try {
       const v=await get(0);
       if(v.phase==='results') break;
       names.add(v.content.prompt);
-      if(v.content.kind==='conversation'){await get(1);assert.equal((await send(1,'skip')).status,200);continue;}
+
       // Read every role afresh: answering can transition prediction -> target-answer.
       for(let i=0;i<4;i++) {
         const own=await get(i), a=own.actions.find(a=>a.type==='answer');
-        if(a){const response=await send(i,'answer',{choice:0,...(a.stage?{stage:a.stage}:{})});assert.equal(response.status,200);assert.equal(response.body.reveal,undefined);}
+        if(a){const response=await send(i,'answer',v.content.kind==='conversation' ? {response:'text',text:`PRIVATE-STORY-${i}`} : {choice:0,...(a.stage?{stage:a.stage}:{})});assert.equal(response.status,200);if(response.body.roundState!=='reveal')assert.equal(response.body.reveal,undefined);}
       }
       const after=await get(0);
-      if(after.roundState==='locked') assert.equal((await send(0,'reveal')).status,200);
-      if((await get(0)).roundState==='reveal') assert.equal((await send(0,after.round===after.totalRounds-1?'finish':'next')).status,200);
+      if(after.roundState==='reveal') for(let i=0;i<4;i++){await get(i); assert.equal((await send(i,'ready')).status,200);}
     }
     const results=await get(0);assert.equal(results.phase,'results');assert.equal(results.history.length,10);assert(results.summary);assert.equal(results.scores,undefined);
     const continuation={id:id(),match:results.match,round:results.round,type:'continue'};
@@ -202,7 +201,7 @@ try {
     for(const event of hostEvents.events){
       assert(!JSON.stringify(event).includes('correctIndex') || event.roundState==='reveal' || event.phase==='results');
       if(event.preparation) assert(!JSON.stringify(event).includes(privateQuestion.prompt));
-      if(event.phase==='active' && event.roundState!=='reveal'){assert.equal(event.reveal,undefined);assert.equal(event.scores,undefined);assert.equal(event.history,undefined);}
+      if(event.phase==='active' && event.roundState!=='reveal'){assert.equal(event.reveal,undefined);assert.equal(event.scores,undefined);assert.equal(event.history,undefined);assert(!JSON.stringify(event).includes('PRIVATE-STORY-1'));}
     }
     console.log('Entre Nós social HTTP/SSE: preparation privacy, guest ownership, frozen questions, 4 roles, ten moments, prediction stages, reconnect and idempotent continuation passed.');
   } else if (testOnda) {
