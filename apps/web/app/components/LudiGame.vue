@@ -64,7 +64,7 @@ const waitingMessage = computed(() => {
   if (v.phase === 'results') return 'Partida concluída. Quem criou a sala pode iniciar outra.'
   if (v.roundState === 'reveal') return 'Resultado revelado. Quem criou a sala avança.'
   if (v.roundState === 'locked') return 'Todos responderam. Quem criou a sala pode revelar.'
-  if (v.content?.kind === 'conversation') return 'Conversem com calma. Podem passar sem explicar.'
+  if (v.content?.kind === 'conversation') return 'A aguardar a participação do grupo. Podes passar sem explicar.'
   if (v.stage === 'prediction') return 'A aguardar as previsões do grupo.'
   if (v.stage === 'target-answer') return 'Agora responde a pessoa sobre quem fizeram a previsão.'
   if (v.skipped) return 'Passaste esta pergunta. Sem precisar de explicar.'

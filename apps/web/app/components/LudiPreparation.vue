@@ -14,8 +14,19 @@ const controls = ref<HTMLElement>(), controlsHeight = ref(190)
 let resizeControls: ResizeObserver | undefined
 watch(controls, element => { resizeControls?.disconnect(); if (element) { resizeControls = new ResizeObserver(() => { controlsHeight.value = Math.ceil(element.getBoundingClientRect().height) }); resizeControls.observe(element) } })
 onUnmounted(() => resizeControls?.disconnect())
-const contexts: Array<[SessionRelationship, string]> = [['strangers','Acabámos de nos conhecer'],['friends','Amigos'],['couple','Casal / date'],['group','Grupo'],['close','Conhecemo-nos bem'],['random','Aleatório']]
-const title = computed(() => ({ lobby: 'Quem se junta?', context: 'Quem está a jogar?', mode: 'Como querem jogar?', questions: prep.value.config?.mode === 'quem-me-conhece' ? 'Agora crias o jogo.' : 'Queres pôr uma pergunta tua no jogo?' })[prep.value.step])
+const contexts: Array<[SessionRelationship, string, string]> = [
+  ['strangers', 'Primeiro encontro', 'Ainda se estão a conhecer.'],
+  ['friends', 'Amigos', 'Amizades e descobertas do dia a dia.'],
+  ['couple', 'Casal / date', 'Uma partida com alguém especial.'],
+  ['group', 'Grupo misto', 'Colegas, turma ou pessoas de vários círculos.'],
+  ['close', 'Muito próximos', 'Já têm confiança e histórias em comum.'],
+  ['random', 'Surpreende-nos', 'Uma mistura, sem escolher um contexto.'],
+]
+const modes: Array<{ id: SocialMode; title: string; source: string; description: string; preparation: string; glyph: number }> = [
+  { id: 'entre-nos', title: 'Entre Nós', source: 'Perguntas prontas', description: 'O Ludi traz as perguntas. Vocês escolhem respostas, fazem previsões e partilham histórias.', preparation: 'Nada obrigatório para preparar. Podem acrescentar perguntas vossas.', glyph: 2 },
+  { id: 'quem-me-conhece', title: 'Quem Me Conhece?', source: 'Perguntas criadas por vocês', description: 'Cada pessoa cria perguntas sobre si e indica a resposta certa. Os outros tentam adivinhar.', preparation: 'Antes de jogar, cada pessoa guarda pelo menos uma pergunta.', glyph: 0 },
+]
+const title = computed(() => ({ lobby: 'Quem se junta?', context: 'Quem está a jogar?', mode: 'De onde vêm as perguntas?', questions: prep.value.config?.mode === 'quem-me-conhece' ? 'Agora crias o jogo.' : 'Queres pôr uma pergunta tua no jogo?' })[prep.value.step])
 watch(() => prep.value.step, async () => { editor.value = false; error.value = ''; notice.value = ''; await nextTick(); heading.value?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }) })
 async function send(payload: Omit<PreparationAction, 'id' | 'revision'>) {
   if (busy.value || !props.session.prepare) return false
@@ -40,21 +51,39 @@ async function start() {
   <main class="ludi-page ludi-game ludi-preparation" :style="{ '--l-controls-height': `${controlsHeight}px` }">
     <LudiSocialHeader :view="view" />
     <p v-if="connection?.message" class="ludi-notice" role="status">{{ connection.message }}</p>
-    <div class="ludi-game-layout is-lobby">
+    <div class="ludi-game-layout is-lobby" :class="{ 'is-choosing': prep.step === 'mode' || prep.step === 'context' }">
       <section class="ludi-question">
         <p class="ludi-eyebrow">{{ prep.step === 'lobby' ? 'A vossa sala' : prep.step === 'context' ? 'Contexto' : prep.step === 'mode' ? 'Modo' : 'Perguntas só tuas' }}</p>
         <h1 ref="heading" tabindex="-1">{{ title }}</h1>
-        <template v-if="prep.step === 'lobby'"><p class="ludi-lead">Cada pessoa entra no seu aparelho. Depois escolhem o contexto da conversa.</p><p class="ludi-small">Podem ser 2–6. O grupo mantém-se durante a partida; quem sair pode voltar pelo convite.</p></template>
+        <template v-if="prep.step === 'lobby'"><p class="ludi-lead">Cada pessoa entra no seu aparelho. Depois escolhem os temas e como querem jogar.</p><p class="ludi-small">Podem ser 2–6. O grupo mantém-se durante a partida; quem sair pode voltar pelo convite.</p></template>
         <template v-else-if="prep.step === 'context'">
-          <p class="ludi-lead">{{ control ? 'Escolhe o contexto que melhor descreve vocês.' : 'Quem criou a sala está a escolher o contexto.' }}</p>
-          <fieldset v-if="control" class="ludi-options social-context-options" :disabled="busy"><legend class="sr-only">Contexto da sessão</legend><label v-for="[value, label] in contexts" :key="value" :class="{ selected: selectedContext === value }"><input v-model="selectedContext" type="radio" name="context" :value="value"><LudiSocialGlyph :label="label" /><span>{{ label }}</span><span class="social-context-check" aria-hidden="true">{{ selectedContext === value ? '✓' : '' }}</span></label></fieldset>
+          <p class="ludi-lead">{{ control ? 'Quem está nesta sala? A escolha ajuda o Ludi a selecionar os temas.' : 'Quem criou a sala está a escolher o contexto.' }}</p>
+          <fieldset v-if="control" class="ludi-options social-context-options" :disabled="busy">
+            <legend class="sr-only">Contexto da sessão</legend>
+            <label v-for="[value, label, description] in contexts" :key="value" :class="{ selected: selectedContext === value }">
+              <input v-model="selectedContext" type="radio" name="context" :value="value">
+              <LudiSocialGlyph :label="value === 'strangers' || value === 'close' ? 'pessoas' : label" />
+              <span class="social-context-copy"><strong>{{ label }}</strong><small>{{ description }}</small></span>
+              <span class="social-context-check" aria-hidden="true">{{ selectedContext === value ? '✓' : '' }}</span>
+            </label>
+          </fieldset>
         </template>
         <template v-else-if="prep.step === 'mode'">
-          <p class="ludi-lead">{{ control ? 'Escolhe o tipo de sessão.' : 'Quem criou a sala está a escolher o modo.' }}</p>
-          <fieldset v-if="control" class="ludi-options" :disabled="busy"><legend class="sr-only">Modo de jogo</legend>
-            <label :class="{ selected: selectedMode === 'entre-nos' }"><input v-model="selectedMode" type="radio" name="mode" value="entre-nos"><span><strong>Entre Nós · Recomendado</strong><small>O jogo conduz. Vocês também podem pôr perguntas vossas.</small></span></label>
-            <label :class="{ selected: selectedMode === 'quem-me-conhece' }"><input v-model="selectedMode" type="radio" name="mode" value="quem-me-conhece"><span><strong>Quem Me Conhece?</strong><small>Vocês criam o conteúdo. Nós damos o formato do jogo.</small></span></label>
+          <p class="ludi-lead">{{ control ? 'Escolhe uma das duas formas de jogar. Todo o grupo joga a mesma.' : 'Quem criou a sala escolhe uma destas formas de jogar para todo o grupo.' }}</p>
+          <fieldset v-if="control" class="ludi-options social-mode-options" :disabled="busy">
+            <legend class="sr-only">Tipo de sessão e preparação necessária</legend>
+            <label v-for="mode in modes" :key="mode.id" :class="{ selected: selectedMode === mode.id }">
+              <input v-model="selectedMode" type="radio" name="mode" :value="mode.id">
+              <span class="social-mode-top"><LudiSocialGlyph :variant="mode.glyph" /><span class="social-mode-source">{{ mode.source }}</span><span class="social-mode-check" aria-hidden="true">{{ selectedMode === mode.id ? '✓' : '' }}</span></span>
+              <strong class="social-mode-title">{{ mode.title }}</strong>
+              <span class="social-mode-description">{{ mode.description }}</span>
+              <span class="social-mode-preparation">{{ mode.preparation }}</span>
+              <span v-if="mode.id === 'entre-nos'" class="social-mode-recommended">Ideal para a primeira partida</span>
+            </label>
           </fieldset>
+          <div v-else class="social-mode-explainer">
+            <section v-for="mode in modes" :key="mode.id"><h2>{{ mode.title }}</h2><p>{{ mode.description }}</p><p class="ludi-small">{{ mode.preparation }}</p></section>
+          </div>
         </template>
         <template v-else>
           <p class="ludi-small">{{ contexts.find(c => c[0] === prep.config?.context)?.[1] }} · {{ prep.config?.mode === 'quem-me-conhece' ? 'Quem Me Conhece?' : 'Entre Nós' }}</p>
@@ -77,11 +106,11 @@ async function start() {
     <footer ref="controls" class="ludi-controls"><div class="ludi-controls-inner" :aria-busy="busy">
       <p v-if="error && !editor" class="ludi-error" role="alert">{{ error }}</p>
       <template v-if="control && prep.step === 'lobby'"><button class="ludi-primary" :disabled="busy || view.players.length < 2" @click="send({ type: 'advance' })">Continuar →</button><p v-if="view.players.length < 2" class="ludi-small">Falta pelo menos mais uma pessoa.</p></template>
-      <button v-else-if="control && prep.step === 'context'" class="ludi-primary" :disabled="busy || !selectedContext" @click="send({ type: 'context', context: selectedContext })">Continuar →</button>
-      <button v-else-if="control && prep.step === 'mode'" class="ludi-primary" :disabled="busy" @click="send({ type: 'mode', mode: selectedMode })">Continuar →</button>
+      <button v-else-if="control && prep.step === 'context'" class="ludi-primary" :disabled="busy || !selectedContext" @click="send({ type: 'context', context: selectedContext })">Escolher como jogar →</button>
+      <button v-else-if="control && prep.step === 'mode'" class="ludi-primary" :disabled="busy" @click="send({ type: 'mode', mode: selectedMode })">{{ selectedMode === 'entre-nos' ? 'Continuar com Entre Nós →' : 'Preparar as nossas perguntas →' }}</button>
       <template v-else-if="prep.step === 'questions' && !editor">
         <button v-if="!me?.ready" class="ludi-primary" :disabled="busy || (prep.config?.mode === 'quem-me-conhece' && !me?.count)" @click="send({ type: 'readiness', ready: true })">{{ prep.config?.mode === 'entre-nos' && !me?.count ? 'Saltar por agora · estou pronto' : 'Estou pronto' }}</button>
-        <template v-else><button v-if="view.actions.some(a => a.type === 'start')" class="ludi-primary" :disabled="busy" @click="start">Começar a conversa →</button><p v-else class="ludi-waiting" role="status">A aguardar que o grupo fique pronto. Depois, qualquer pessoa pode começar.</p><button class="ludi-text-button" :disabled="busy" @click="send({ type: 'readiness', ready: false })">Voltar às minhas perguntas</button></template>
+        <template v-else><button v-if="view.actions.some(a => a.type === 'start')" class="ludi-primary" :disabled="busy" @click="start">Começar a jogar →</button><p v-else class="ludi-waiting" role="status">A aguardar que o grupo fique pronto. Depois, qualquer pessoa pode começar.</p><button class="ludi-text-button" :disabled="busy" @click="send({ type: 'readiness', ready: false })">Voltar às minhas perguntas</button></template>
       </template>
       <p v-else class="ludi-waiting" role="status">{{ editor ? 'Guarda a pergunta no formulário para continuar.' : 'À espera de quem criou a sala.' }}</p>
     </div></footer>
@@ -89,6 +118,40 @@ async function start() {
 </template>
 
 <style scoped>
-.ludi-preparation .ludi-game-layout{max-width:64rem;margin:auto}.ludi-preparation .ludi-question{border:0;background:transparent;box-shadow:none;padding:0}.social-context-options{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}.social-context-options label{position:relative;flex-direction:column;text-align:center;justify-content:center;min-height:140px;padding:1rem!important;border-radius:18px!important;box-shadow:none!important;background:#fffdf6!important}.social-context-options label.selected{background:#eaf2e4!important;border-color:#29835a!important}.social-context-check{position:absolute;top:.5rem;right:.5rem;width:23px;height:23px;border:1px solid #c2cfbc;border-radius:50%;font-size:.8rem}.selected .social-context-check{color:white;background:#287950;border-color:#287950}.ludi-preparation .ludi-primary{border-radius:999px;background:#246447}.ludi-preparation .ludi-question h1{font-size:clamp(2rem,4vw,3rem);letter-spacing:-.04em}@media(max-width:600px){.ludi-preparation .ludi-game-layout{display:flex;flex-direction:column-reverse}.ludi-preparation .social-context-options label{min-height:122px}}
-.ludi-preparation .ludi-primary:disabled{background:#dfe6da;color:#697766;opacity:1}
+.ludi-preparation .ludi-game-layout { max-width: 64rem; margin: auto; gap: 24px; }
+.ludi-preparation .ludi-question { border: 0; background: transparent; box-shadow: none; padding: 0; }
+.ludi-preparation .ludi-question h1 { font-size: clamp(2rem,4vw,3rem); letter-spacing: -.04em; max-width: 20ch; margin-bottom: 14px; }
+.is-choosing { display: flex !important; flex-direction: column-reverse; }
+.is-choosing > * { width: 100%; }
+.is-choosing :deep(.ludi-room-info summary) { padding-block: 10px; }
+.social-context-options { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
+.social-context-options label { position: relative; flex-direction: column; text-align: center; justify-content: start; padding: 1rem !important; border-radius: 18px !important; box-shadow: none !important; background: #fffdf6 !important; }
+.social-context-options label.selected, .social-mode-options label.selected { background: #eaf2e4 !important; border-color: #29835a !important; }
+.social-context-copy strong, .social-context-copy small { display: block; }
+.social-context-copy small { margin-top: 5px; font-size: 13px; font-weight: 400; color: #526455; line-height: 1.35; }
+.social-context-check, .social-mode-check { width: 23px; height: 23px; flex: none; border: 1px solid #8eaa92; border-radius: 50%; font-size: .8rem; display: grid; place-items: center; }
+.social-context-check { position: absolute; top: .5rem; right: .5rem; }
+.selected .social-context-check, .selected .social-mode-check { color: white; background: #287950; border-color: #287950; }
+.social-mode-options { gap: 14px; }
+.social-mode-options label { display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 20px !important; background: #fffdf6; border-radius: 20px; box-shadow: none; font-weight: 400; }
+.social-mode-top { display: flex; gap: 10px; align-items: center; }
+.social-mode-top :deep(.social-glyph) { width: 36px; height: 36px; }
+.social-mode-source { flex: 1; color: #48634f; font-size: 12px; font-weight: 800; }
+.social-mode-title { font-size: 25px; letter-spacing: -.035em; line-height: 1.1; }
+.social-mode-description { font-size: 15px; line-height: 1.45; }
+.social-mode-preparation { padding-top: 10px; border-top: 1px solid #d3dfcf; font-size: 13px; color: #48634f; line-height: 1.4; }
+.social-mode-recommended { align-self: start; padding: 3px 8px; font-size: 11px; font-weight: 700; background: #f5e4af; border-radius: 6px; color: #605020; }
+.social-mode-explainer section { border-top: 1px solid var(--l-line); padding-top: 18px; margin-top: 18px; }
+.ludi-preparation .ludi-primary { border-radius: 999px; background: #246447; }
+.ludi-preparation .ludi-primary:disabled { background: #dfe6da; color: #697766; opacity: 1; }
+@media (min-width: 741px) {
+  .social-mode-options { grid-template-columns: 1fr 1fr; }
+  .social-context-options { grid-template-columns: repeat(3, 1fr); }
+  .is-choosing .ludi-question h1 { max-width: none; }
+}
+@media (max-width: 600px) {
+  .ludi-preparation .ludi-game-layout { display: flex; flex-direction: column-reverse; }
+  .social-mode-options label { padding: 16px !important; gap: 8px; }
+  .social-mode-title { font-size: 23px; }
+}
 </style>
