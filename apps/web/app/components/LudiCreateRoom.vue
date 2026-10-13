@@ -44,43 +44,36 @@ async function createRoom() {
     <!-- Entre Nós: one purposeful first screen, no redundant Start -> Create room step. -->
     <form v-if="entrance" class="ludi-entrance-shell" :aria-busy="busy" @submit.prevent="createRoom">
       <section class="ludi-entrance-intro" aria-labelledby="entre-title">
-        <div class="ludi-entrance-kicker">
-          <LudiGameMark game="entre-nos" />
-          <span>Um jogo de conversa e descoberta</span>
-        </div>
-        <h1 id="entre-title">Entre <span>Nós<span class="ludi-entrance-star" aria-hidden="true">✳</span></span></h1>
-        <p class="ludi-entrance-lead">Quanto sabes de quem está contigo?</p>
-        <p class="ludi-entrance-description">Escolham, adivinhem e partilhem histórias. Há sempre algo novo para descobrir.</p>
+        <LudiEntreArtwork class="ludi-entrance-emblem" scene="brand" />
+        <p class="ludi-entrance-kicker">Um jogo de conversa e descoberta</p>
+        <h1 id="entre-title">Entre Nós</h1>
+        <p class="ludi-entrance-lead">Quanto sabes de quem<br>joga contigo?</p>
+        <p class="ludi-entrance-description">Escolham, adivinhem e partilhem histórias por texto. Cada um no seu aparelho.</p>
       </section>
 
       <!-- Illustrative demo, not drawn from the server-only question bank and not playable. -->
       <div class="ludi-entrance-preview" aria-hidden="true">
-        <div class="ludi-entrance-preview-top">
-          <span>PRÉVIA ILUSTRATIVA</span>
-          <div class="ludi-entrance-preview-players">
-            <span>F</span><span>B</span><span>C</span>
-          </div>
-        </div>
+        <span class="ludi-entrance-preview-caption">Prévia ilustrativa</span>
         <div class="ludi-entrance-preview-card">
-          <span class="ludi-entrance-preview-stage"><span class="ludi-entrance-preview-spark">✳</span> Uma escolha rápida</span>
-          <p>Se pudesses escolher uma surpresa para amanhã?</p>
+          <span class="ludi-entrance-preview-stage">Uma escolha rápida</span>
+          <p>Que surpresa escolherias para amanhã?</p>
           <div class="ludi-entrance-preview-options">
-            <div><LudiSocialGlyph label="descanso" />Ficar sossegado</div>
-            <div class="is-selected"><LudiSocialGlyph label="passeio" />Sair a explorar <span>✓</span></div>
+            <div><LudiEntreArtwork scene="rest" /><span><i></i>Ficar sossegado</span></div>
+            <div class="is-selected"><LudiEntreArtwork scene="explore" /><span><i>✓</i>Sair a explorar</span></div>
           </div>
         </div>
-        <div class="ludi-entrance-preview-note"><span aria-hidden="true">✦</span> Cada resposta traz uma descoberta.</div>
+        <p class="ludi-entrance-preview-note">Vocês escolhem. Depois, descobrem juntos.</p>
       </div>
 
       <div class="ludi-entrance-fields">
         <label for="entre-name">Como te chamas?</label>
-        <input id="entre-name" v-model="name" placeholder="Escreve o teu nome" autocomplete="nickname" maxlength="32" required :disabled="busy" :aria-invalid="!!error" :aria-describedby="error ? 'entre-create-error' : undefined">
+        <input id="entre-name" v-model="name" placeholder="Escreve o teu nome" autocomplete="nickname" enterkeyhint="go" maxlength="32" required :disabled="busy" :aria-invalid="!!error" :aria-describedby="error ? 'entre-create-error' : undefined">
         <p v-if="error" id="entre-create-error" class="ludi-error" role="alert">{{ error }}</p>
         <button type="submit" class="ludi-primary ludi-entrance-cta" :disabled="busy || !name.trim()">
           <span>{{ busy ? 'A criar a sala…' : 'Criar sala' }}</span><span aria-hidden="true">→</span>
         </button>
-        <p class="ludi-entrance-meta">2–6 pessoas <span aria-hidden="true">·</span> Sem conta <span aria-hidden="true">·</span> Perto ou longe</p>
-        <p class="ludi-entrance-after">O convite aparece logo a seguir. Cada pessoa joga no seu aparelho.</p>
+        <p class="ludi-entrance-meta">2–6 pessoas <span aria-hidden="true">·</span> Sem conta <span aria-hidden="true">·</span> Online</p>
+        <p class="ludi-entrance-after">O convite aparece a seguir. Podem jogar à distância.</p>
       </div>
 
       <div class="ludi-entrance-more">
@@ -89,7 +82,7 @@ async function createRoom() {
           <ol>
             <li>Cria uma sala e partilha o convite.</li>
             <li>Escolhem o contexto e, se quiserem, acrescentam perguntas próprias.</li>
-            <li>Respondam, prevejam e descubram juntos. Também podem contar histórias por texto ou oralmente.</li>
+            <li>Respondam, prevejam e descubram juntos. As histórias são partilhadas por texto; passar é sempre uma opção.</li>
           </ol>
         </details>
         <LudiQuestionHistory />
@@ -121,123 +114,77 @@ async function createRoom() {
 </template>
 
 <style scoped>
-/* Only the Entre Nós first screen changes. Game sessions and the other entries are untouched. */
-.ludi-entrance-page { --l-action: #24684b; --l-action-hover: #195239; }
-.ludi-entrance-page :deep(.ludi-top) { margin-bottom: clamp(12px, 3vh, 26px); }
-.ludi-entrance-shell {
-  width: min(100%, 1030px);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, .96fr);
-  grid-template-areas: 'intro preview' 'fields preview' 'more preview';
-  column-gap: clamp(32px, 6vw, 84px);
-  align-items: center;
-}
-.ludi-entrance-intro { grid-area: intro; min-width: 0; }
-.ludi-entrance-kicker { display: flex; align-items: center; gap: 11px; color: #56665d; font-size: 12px; font-weight: 800; letter-spacing: .065em; text-transform: uppercase; margin-bottom: 14px; }
-.ludi-entrance-kicker :deep(.ludi-game-mark) { width: 37px; height: 37px; }
-.ludi-entrance-intro h1 { font-size: clamp(58px, 7vw, 94px); line-height: .96; letter-spacing: -.07em; margin: 0 0 20px; }
-.ludi-entrance-intro h1 > span { white-space: nowrap; }
-.ludi-entrance-star { display: inline-block; vertical-align: top; color: #d8a94d; font-size: .33em; margin-left: .11em; transform: rotate(-14deg); }
-.ludi-entrance-lead { font-size: clamp(22px, 2.45vw, 29px); font-weight: 800; line-height: 1.16; letter-spacing: -.025em; max-width: 25ch; margin-bottom: 12px !important; }
-.ludi-entrance-description { font-size: 16px; line-height: 1.45; color: var(--l-muted); max-width: 36ch; margin-bottom: 24px !important; }
+.ludi-entrance-page { --l-action: #205e43; --l-action-hover: #174b34; }
+.ludi-entrance-page :deep(.ludi-top) { margin-bottom: 20px; }
+.ludi-entrance-shell { width: min(100%, 1000px); margin: auto; display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: 'intro preview' 'fields preview' 'more more'; gap: 20px 60px; align-items: center; }
+.ludi-entrance-intro { grid-area: intro; text-align: center; }
+.ludi-entrance-intro .ludi-entrance-emblem { width: 124px; margin: 0 auto 12px; }
+.ludi-entrance-kicker { color: #47745b; text-transform: uppercase; font-size: 10px; font-weight: 800; letter-spacing: .14em; margin-bottom: 10px !important; }
+.ludi-entrance-intro h1 { color: #123f30; font-size: clamp(54px, 6vw, 78px); line-height: 1; letter-spacing: -.06em; margin-bottom: 12px; }
+.ludi-entrance-lead { font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; line-height: 1.15; letter-spacing: -.035em; margin-bottom: 12px !important; }
+.ludi-entrance-description { font-size: 16px; line-height: 1.4; color: var(--l-muted); max-width: 36ch; margin: 0 auto !important; text-wrap: pretty; }
 .ludi-entrance-fields { grid-area: fields; min-width: 0; }
-.ludi-entrance-fields label { display: block; font-size: 15px; font-weight: 800; margin-bottom: 6px; }
-.ludi-entrance-page .ludi-entrance-fields input { margin: 0 0 12px; background: #fffefa; border-color: #bccfc1; border-radius: 15px; min-height: 54px; padding-inline: 16px; }
-.ludi-entrance-cta { min-height: 58px; border-radius: 15px; font-size: 17px; display: flex; justify-content: center; }
-.ludi-entrance-cta span:last-child { font-size: 22px; line-height: 1; }
-.ludi-entrance-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--l-muted); margin: 14px 0 5px !important; }
-.ludi-entrance-after { text-align: center; color: var(--l-muted); font-size: 13px; line-height: 1.35; margin: 0 !important; }
-.ludi-entrance-more { grid-area: more; min-width: 0; margin-top: 16px; }
-.ludi-entrance-more :deep(.ludi-form-details) { margin-top: 0; }
-.ludi-entrance-more :deep(.ludi-form-details summary) { font-size: 13px; }
-.ludi-entrance-more :deep(.ludi-form-details ol) { padding-left: 22px; }
+.ludi-entrance-fields label { display: block; font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+.ludi-entrance-page .ludi-entrance-fields input { margin: 0 0 12px; background: #fffdfa; border-color: #c8cec5; border-radius: 12px; min-height: 50px; padding-inline: 16px; }
+.ludi-entrance-cta { min-height: 56px; border-radius: 999px; font-size: 19px; justify-content: center; gap: 14px; }
+.ludi-entrance-cta span:last-child { font-size: 24px; line-height: 1; }
+.ludi-entrance-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px; color: var(--l-muted); margin: 12px 0 4px !important; }
+.ludi-entrance-after { text-align: center; color: var(--l-muted); font-size: 12px; line-height: 1.4; margin: 0 !important; }
+.ludi-entrance-more { grid-area: more; width: min(100%, 560px); margin: 8px auto 0; border-top: 1px solid var(--l-line); padding-top: 12px; }
+.ludi-entrance-more :deep(.ludi-form-details) { border: 0; border-radius: 12px; background: #f0f0e9; margin: 0 0 6px; padding: 0 14px; }
+.ludi-entrance-more :deep(summary) { min-height: 46px; padding-block: 12px; font-size: 14px; }
+.ludi-entrance-more :deep(.ludi-form-details ol) { padding: 0 0 12px 22px; }
 .ludi-entrance-more :deep(.ludi-form-details li) { margin-bottom: 8px; }
-.ludi-entrance-preview {
-  grid-area: preview; min-width: 0; min-height: 495px; align-self: center;
-  border-radius: 36px;
-  background: #e7eee5;
-  padding: clamp(20px, 3.4vw, 35px);
-  display: flex; flex-direction: column; justify-content: center;
-  position: relative; overflow: hidden;
-}
-.ludi-entrance-preview::before { content: ''; position: absolute; width: 180px; height: 180px; background: #d2e4d5; border-radius: 50%; top: -75px; right: -35px; }
-.ludi-entrance-preview::after { content: ''; position: absolute; width: 130px; height: 130px; border: 20px solid #d8e6d4; border-radius: 50%; bottom: -70px; left: -40px; }
-.ludi-entrance-preview-top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 20px; font-size: 10px; line-height: 1.25; font-weight: 800; letter-spacing: .08em; color: #526d5c; }
-.ludi-entrance-preview-players { display: flex; padding-right: 5px; }
-.ludi-entrance-preview-players span { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 50%; font-size: 13px; letter-spacing: 0; color: #173e2b; background: #ecd08d; border: 3px solid #e7eee5; margin-right: -8px; }
-.ludi-entrance-preview-players span:nth-child(2) { background: #bcd7c5; }
-.ludi-entrance-preview-players span:nth-child(3) { background: #d9c8ec; }
-.ludi-entrance-preview-card { background: #fffdfa; border: 1px solid #d3dfd3; padding: 26px 20px 20px; border-radius: 27px; box-shadow: 0 16px 35px #24583b12; position: relative; z-index: 1; transform: rotate(-1.5deg); }
-.ludi-entrance-preview-stage { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12px; color: #426c54; }
-.ludi-entrance-preview-spark { font-size: 18px; color: #e7b14b; }
-.ludi-entrance-preview-card > p { font-size: clamp(24px, 2.7vw, 32px); font-weight: 800; line-height: 1.1; letter-spacing: -.045em; margin: 16px 0 19px !important; }
-.ludi-entrance-preview-options { display: grid; gap: 9px; }
-.ludi-entrance-preview-options > div { background: #fcfbf7; border: 1.5px solid #d9dfd6; border-radius: 15px; padding: 10px; min-height: 60px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 800; }
-.ludi-entrance-preview-options > .is-selected { background: #e4f2e7; border-color: #278a5d; }
-.ludi-entrance-preview-options :deep(.social-glyph) { width: 37px; height: 37px; }
-.ludi-entrance-preview-options .is-selected > span { display: grid; place-items: center; background: #247e56; color: white; border-radius: 50%; width: 25px; height: 25px; margin-left: auto; flex: none; }
-.ludi-entrance-preview-note { position: relative; z-index: 1; display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 20px; font-size: 13px; font-weight: 700; color: #456755; text-align: center; }
-.ludi-entrance-preview-note > span { font-size: 20px; color: #cc9440; }
+.ludi-entrance-preview { grid-area: preview; min-width: 0; padding: 22px; border-radius: 32px; background: #dce9d5; position: relative; overflow: hidden; }
+.ludi-entrance-preview::before { content: ''; position: absolute; width: 190px; height: 330px; background: #b5cfa8; border-radius: 50%; left: -100px; top: 60px; transform: rotate(-25deg); }
+.ludi-entrance-preview::after { content: ''; position: absolute; width: 180px; height: 160px; border-radius: 50%; background: #c6d5a4; right: -80px; bottom: -60px; }
+.ludi-entrance-preview-caption { display: inline-block; position: relative; padding: 5px 10px; border-radius: 999px; background: #f6f8f0; color: #536a59; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 14px; }
+.ludi-entrance-preview-card { background: #fffdfa; padding: 20px 16px 16px; border-radius: 24px; position: relative; z-index: 1; text-align: center; box-shadow: 0 10px 25px #244b3110; }
+.ludi-entrance-preview-stage { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: #f7dfa0; }
+.ludi-entrance-preview-card > p { font-size: 24px; font-weight: 800; line-height: 1.15; letter-spacing: -.03em; margin: 12px auto 16px !important; max-width: 23ch; text-wrap: balance; }
+.ludi-entrance-preview-options { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.ludi-entrance-preview-options > div { border: 1.5px solid transparent; background: #f3f2ec; border-radius: 15px; padding: 8px; min-width: 0; }
+.ludi-entrance-preview-options > .is-selected { background: #eaf2e4; border-color: #246447; }
+.ludi-entrance-preview-options .entre-art { max-height: 110px; }
+.ludi-entrance-preview-options span { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 700; line-height: 1.2; margin-top: 4px; }
+.ludi-entrance-preview-options i { font-style: normal; width: 20px; height: 20px; flex: none; border: 1.5px solid #a8b0a4; border-radius: 50%; background: white; display: grid; place-items: center; }
+.is-selected i { background: #246447; color: white; border-color: #246447; }
+.ludi-entrance-preview-note { position: relative; z-index: 1; margin: 12px 0 0 !important; text-align: center; font-size: 12px; color: #3d634b; }
 @media (max-width: 740px) {
-  .ludi-entrance-page { padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right)); }
-  .ludi-entrance-shell { max-width: 470px; grid-template-columns: minmax(0,1fr); grid-template-areas: 'intro' 'preview' 'fields' 'more'; gap: 0; }
-  .ludi-entrance-intro h1 { font-size: clamp(58px, 15vw, 75px); margin-bottom: 11px; }
-  .ludi-entrance-lead { font-size: 22px; margin-bottom: 8px !important; }
-  .ludi-entrance-description { font-size: 15px; line-height: 1.35; margin-bottom: 15px !important; }
-  .ludi-entrance-kicker { margin-bottom: 7px; font-size: 11px; }
-  .ludi-entrance-kicker :deep(.ludi-game-mark) { width: 28px; height: 28px; }
-  .ludi-entrance-preview { min-height: unset; padding: 15px; border-radius: 22px; margin-bottom: 19px; }
-  .ludi-entrance-preview-top { margin-bottom: 7px; }
-  .ludi-entrance-preview-card { transform: none; border-radius: 18px; padding: 13px 15px 12px; }
-  .ludi-entrance-preview-card > p { font-size: 22px; line-height: 1.1; margin: 5px 0 11px !important; max-width: 19ch; }
-  .ludi-entrance-preview-stage { font-size: 11px; }
-  .ludi-entrance-preview-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-  .ludi-entrance-preview-options > div { padding: 6px; min-height: 55px; font-size: 12px; gap: 5px; line-height: 1.15; }
-  .ludi-entrance-preview-options :deep(.social-glyph) { width: 30px; height: 30px; }
-  .ludi-entrance-preview-options .is-selected > span { width: 18px; height: 18px; font-size: 11px; }
-  .ludi-entrance-preview-note { margin-top: 7px; font-size: 12px; }
-  .ludi-entrance-fields label { font-size: 14px; }
-  .ludi-entrance-page .ludi-entrance-fields input { min-height: 50px; margin-bottom: 9px; }
-  .ludi-entrance-cta { min-height: 54px; }
-  .ludi-entrance-meta { margin-top: 10px !important; }
-  .ludi-entrance-more { margin-top: 12px; }
+  .ludi-entrance-page :deep(.ludi-top) { margin-bottom: 8px; }
+  .ludi-entrance-shell { max-width: 440px; grid-template-columns: minmax(0,1fr); grid-template-areas: 'intro' 'preview' 'fields' 'more'; gap: 18px; }
+  .ludi-entrance-intro .ludi-entrance-emblem { width: 98px; margin-bottom: 8px; }
+  .ludi-entrance-kicker { font-size: 9px; letter-spacing: .11em; margin-bottom: 8px !important; }
+  .ludi-entrance-intro h1 { font-size: clamp(52px, 14.5vw, 66px); margin-bottom: 8px; }
+  .ludi-entrance-lead { font-size: 23px; margin-bottom: 8px !important; }
+  .ludi-entrance-description { font-size: 14px; max-width: 36ch; }
+  .ludi-entrance-preview { padding: 12px; border-radius: 24px; }
+  .ludi-entrance-preview-caption { margin-bottom: 8px; padding: 3px 8px; font-size: 8px; }
+  .ludi-entrance-preview-card { padding: 12px 10px 10px; border-radius: 18px; }
+  .ludi-entrance-preview-stage { font-size: 10px; padding: 3px 8px; }
+  .ludi-entrance-preview-card > p { font-size: 19px; margin: 8px auto 10px !important; }
+  .ludi-entrance-preview-options > div { padding: 5px; border-radius: 12px; }
+  .ludi-entrance-preview-options .entre-art { max-height: 76px; }
+  .ludi-entrance-preview-options span { font-size: 11px; }
+  .ludi-entrance-preview-options i { width: 17px; height: 17px; font-size: 10px; }
+  .ludi-entrance-preview-note { display: none; }
+  .ludi-entrance-fields label { font-size: 16px; }
+  .ludi-entrance-more { margin-top: 0; }
 }
 @media (max-width: 360px) {
-  .ludi-entrance-kicker { font-size: 10px; }
-  .ludi-entrance-intro h1 { font-size: 54px; }
-  .ludi-entrance-preview-top { font-size: 9px; }
-  .ludi-entrance-preview-options > div { font-size: 11px; }
-  .ludi-entrance-preview-options :deep(.social-glyph) { width: 26px; height: 26px; }
+  .ludi-entrance-shell { gap: 14px; }
+  .ludi-entrance-intro .ludi-entrance-emblem { width: 86px; }
+  .ludi-entrance-lead { font-size: 21px; }
+  .ludi-entrance-preview-options span { font-size: 10px; }
+  .ludi-entrance-preview-options i { width: 14px; height: 14px; }
 }
-@media (max-height: 700px) and (max-width: 740px) {
-  .ludi-entrance-page :deep(.ludi-top) { margin-bottom: 8px; }
-  .ludi-entrance-description { margin-bottom: 9px !important; }
-  .ludi-entrance-preview { padding: 11px; margin-bottom: 12px; }
-  .ludi-entrance-preview-top, .ludi-entrance-preview-note { display: none; }
-}
-
 @media (max-height: 540px) and (min-width: 741px) {
-  .ludi-entrance-page { padding-block: 12px; }
-  .ludi-entrance-page :deep(.ludi-top) { min-height: 36px; margin-bottom: 6px; }
-  .ludi-entrance-kicker { font-size: 10px; margin-bottom: 4px; }
-  .ludi-entrance-kicker :deep(.ludi-game-mark) { width: 26px; height: 26px; }
-  .ludi-entrance-intro h1 { font-size: 47px; margin-bottom: 6px; }
-  .ludi-entrance-lead { font-size: 18px; margin-bottom: 5px !important; }
-  .ludi-entrance-description { font-size: 13px; margin-bottom: 8px !important; }
-  .ludi-entrance-fields label { margin-bottom: 3px; font-size: 13px; }
-  .ludi-entrance-page .ludi-entrance-fields input { min-height: 42px; margin-bottom: 6px; padding-block: 7px; }
-  .ludi-entrance-cta { min-height: 44px; }
-  .ludi-entrance-meta { margin-top: 6px !important; font-size: 11px; }
-  .ludi-entrance-after { display: none; }
-  .ludi-entrance-more { margin-top: 0; }
-  .ludi-entrance-preview { min-height: 290px; padding: 16px; }
-  .ludi-entrance-preview-top { margin-bottom: 8px; }
-  .ludi-entrance-preview-card { transform: none; padding: 12px; border-radius: 18px; }
-  .ludi-entrance-preview-card > p { font-size: 22px; margin: 7px 0 !important; }
-  .ludi-entrance-preview-options > div { min-height: 42px; padding: 5px; }
-  .ludi-entrance-preview-options :deep(.social-glyph) { width: 28px; height: 28px; }
-  .ludi-entrance-preview-note { margin-top: 8px; }
+  .ludi-entrance-shell { gap: 16px 32px; }
+  .ludi-entrance-intro .ludi-entrance-emblem { width: 65px; margin-bottom: 4px; }
+  .ludi-entrance-intro h1 { font-size: 48px; }
+  .ludi-entrance-lead { font-size: 21px; }
+  .ludi-entrance-description { font-size: 13px; }
+  .ludi-entrance-preview { padding: 16px; }
+  .ludi-entrance-preview-card > p { font-size: 20px; }
 }
-
 </style>
